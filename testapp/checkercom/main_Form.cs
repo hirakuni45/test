@@ -494,7 +494,7 @@ namespace checkercom
                     com.ARG_NUM = nu_argument2.Value.ToString();
                     break;
                 case CommID.除算bit出力:
-                    com.REPEAT_CNT = nu_repeat1.Value.ToString();
+                    com.REPEAT_CNT = nu_repeat3.Value.ToString();
                     com.COMMENT = tb_COMMENT3.Text;
                     com.PROPERTY = cb_property3.Text;
                     com.AUX_DATA = Convert.ToString((
