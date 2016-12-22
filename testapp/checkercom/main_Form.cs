@@ -2667,11 +2667,12 @@ namespace checkercom
                     }
                 }
                 if (checkBox1.CheckState != CheckState.Checked) state = false;
-                if(state)
+                PinAssignList[i].Items.Clear();
+                if (state)
                 {
-                    PinAssignList[i].Items.Clear();
                     for (int j = 0; j < PinListIndex; ++j)
                     {
+                        if (PinList[Common.SelectDev, j].PinID == PinID.TWE) continue;
                         PinAssignList[i].Items.Add(PinList[Common.SelectDev, j].PinNum);
                     }
                 }
