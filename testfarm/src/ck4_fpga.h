@@ -1,0 +1,12 @@
+void fpga_init();
+void fpga_0clear();
+void fpga_1clear();
+void fpga_Control(unsigned int,int);
+void fpga_setadrs(int);
+void fpga_setdata(unsigned long,unsigned long);
+void fpga_start();
+void fpga_TWE(int);
+void fpga_serial(int,int,int);
+void fpga_datset(unsigned long);
+void fpga_abort(void);
+void fpga_debug(void);
