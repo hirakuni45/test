@@ -41,6 +41,7 @@ namespace checkercom
         private OpenFileDialog csv;             // ファイルを開く
         private SaveFileDialog sfd;             // 名前を付けて保存
         private MySerialPort MySerialPort;
+        private int tabPageIndex;
 
         public Common common;         // 共通クラス
         const string CRLF = "\r\n";
@@ -133,7 +134,7 @@ namespace checkercom
             InitializeCBox();
 
             // ピン・アサイン、コンボボックスにアイテム設定
-            PinAssignList = new ComboBox[24];
+            PinAssignList = new ComboBox[(int)ConstGui.MAX_PIN_ITEMLIST];
             PinAssignList[0] = comboBox1;
             PinAssignList[1] = comboBox2;
             PinAssignList[2] = comboBox3;
@@ -158,6 +159,8 @@ namespace checkercom
             PinAssignList[21] = comboBox22;
             PinAssignList[22] = comboBox23;
             PinAssignList[23] = comboBox24;
+
+            tabPageIndex = 0;
         }
 
 
@@ -1652,8 +1655,14 @@ namespace checkercom
             }
             if (e.TabPageIndex == 7)    //配線コピー定義
             {
+                setupPinAssign_group();
+            }
+
+            if (tabPageIndex == 2 && e.TabPageIndex != 2) // 配線定義から出た
+            {
                 setupPinAssign_gui();
             }
+            tabPageIndex = e.TabPageIndex;
         }
 
         private void lv_CommandList_SelectedIndexChanged(object sender, EventArgs e)
@@ -1970,6 +1979,8 @@ namespace checkercom
             tb_AUXNum.Text = Common.AUXNum;
 
         }
+
+ 
         //ファイルSAVE
         private void bt_filesave_Click(object sender, EventArgs e)
         {
@@ -2079,6 +2090,28 @@ namespace checkercom
 
                     }
                 }
+                // 配線コピー情報
+                fs.Write("#PinCopyInformation#" + CRLF);
+                int pincnt = 0;
+                string l = "";
+                for(i = 0; i < PinAssignList.Length; ++i)
+                {
+                    if(PinAssignList[i].Enabled)
+                    {
+                        if(PinAssignList[i].Items.Count > 0)
+                        {
+                            ++pincnt;
+                            l += PinAssignList[i].Items.Count.ToString() + ",";
+                        }
+                        for(int n = 0; n < PinAssignList[i].Items.Count; ++n)
+                        {
+                            l += PinAssignList[i].Items[n].ToString() + ",";
+                        }
+                        if (PinAssignList[i].Items.Count > 0) { l += CRLF; }
+                    }
+                }
+                fs.Write(pincnt.ToString() + CRLF);
+                fs.Write(l);
                 //閉じる
                 fs.Close();
                 MessageBox.Show("ファイルを保存しました。", "ファイル保存", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2648,44 +2681,50 @@ namespace checkercom
 
         private void setupPinAssign_gui()
         {
-            for (int i = 0; i < 24; ++i)
+            for (int i = 0; i < (int)ConstGui.MAX_PIN_ITEMLIST; ++i)
             {
-                bool state = true;
-                if (PinListIndex == 0)
+                PinAssignList[i].Items.Clear();
+                PinAssignList[i].Items.Add("NC");
+                bool add = true;
+                for (int j = 0; j < PinListIndex; ++j)
                 {
-                    state = false;
-                }
-                else
-                {
-                    for (int j = 0; j < PinListIndex; ++j)
+                    string nb = PinList[Common.SelectDev, j].PinNum;
+                    if (i == (int.Parse(nb) - 1))
                     {
-                        if (PinList[Common.SelectDev, j].PinNum == (i + 1).ToString())
-                        {
-                            state = false;
-                            break;
-                        }
+                        add = false;
+                        break;
                     }
                 }
-                if (checkBox1.CheckState != CheckState.Checked) state = false;
-                PinAssignList[i].Items.Clear();
-                if (state)
+
+                if (add)
                 {
                     for (int j = 0; j < PinListIndex; ++j)
                     {
                         if (PinList[Common.SelectDev, j].PinID == PinID.TWE) continue;
-                        PinAssignList[i].Items.Add(PinList[Common.SelectDev, j].PinNum);
+                        string nb = PinList[Common.SelectDev, j].PinNum;
+                        PinAssignList[i].Items.Add(nb);
                     }
                 }
+                PinAssignList[i].SelectedIndex = 0;
+            }
+        }
+
+        private void setupPinAssign_group()
+        {
+            for (int i = 0; i < (int)ConstGui.MAX_PIN_ITEMLIST; ++i)
+            {
+                bool state = false;
+                if (checkBox1.CheckState == CheckState.Checked) state = true;
+                if (PinAssignList[i].Items.Count == 1) state = false;
                 PinAssignList[i].Enabled = state;
             }
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            setupPinAssign_gui();
+            setupPinAssign_group();
         }
         ////////////////
-
     }
 
     class MySerialPort : System.IO.Ports.SerialPort
