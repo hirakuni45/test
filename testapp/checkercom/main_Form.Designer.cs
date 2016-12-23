@@ -6135,21 +6135,27 @@
             // groupBox12
             // 
             this.groupBox12.Controls.Add(this.label177);
+            this.groupBox12.Controls.Add(this.comboBox20);
+            this.groupBox12.Controls.Add(this.comboBox22);
+            this.groupBox12.Controls.Add(this.comboBox24);
+            this.groupBox12.Controls.Add(this.comboBox16);
+            this.groupBox12.Controls.Add(this.comboBox23);
+            this.groupBox12.Controls.Add(this.comboBox7);
+            this.groupBox12.Controls.Add(this.comboBox14);
+            this.groupBox12.Controls.Add(this.comboBox15);
+            this.groupBox12.Controls.Add(this.comboBox13);
+            this.groupBox12.Controls.Add(this.comboBox5);
             this.groupBox12.Controls.Add(this.comboBox17);
             this.groupBox12.Controls.Add(this.label178);
             this.groupBox12.Controls.Add(this.comboBox18);
             this.groupBox12.Controls.Add(this.label179);
             this.groupBox12.Controls.Add(this.comboBox19);
             this.groupBox12.Controls.Add(this.label180);
-            this.groupBox12.Controls.Add(this.comboBox20);
             this.groupBox12.Controls.Add(this.label181);
             this.groupBox12.Controls.Add(this.comboBox21);
             this.groupBox12.Controls.Add(this.label182);
-            this.groupBox12.Controls.Add(this.comboBox22);
             this.groupBox12.Controls.Add(this.label183);
-            this.groupBox12.Controls.Add(this.comboBox23);
             this.groupBox12.Controls.Add(this.label184);
-            this.groupBox12.Controls.Add(this.comboBox24);
             this.groupBox12.Controls.Add(this.label169);
             this.groupBox12.Controls.Add(this.comboBox9);
             this.groupBox12.Controls.Add(this.label170);
@@ -6159,19 +6165,13 @@
             this.groupBox12.Controls.Add(this.label172);
             this.groupBox12.Controls.Add(this.comboBox12);
             this.groupBox12.Controls.Add(this.label173);
-            this.groupBox12.Controls.Add(this.comboBox13);
             this.groupBox12.Controls.Add(this.label174);
-            this.groupBox12.Controls.Add(this.comboBox14);
             this.groupBox12.Controls.Add(this.label175);
-            this.groupBox12.Controls.Add(this.comboBox15);
             this.groupBox12.Controls.Add(this.label176);
-            this.groupBox12.Controls.Add(this.comboBox16);
             this.groupBox12.Controls.Add(this.label165);
-            this.groupBox12.Controls.Add(this.comboBox5);
             this.groupBox12.Controls.Add(this.label166);
             this.groupBox12.Controls.Add(this.comboBox6);
             this.groupBox12.Controls.Add(this.label167);
-            this.groupBox12.Controls.Add(this.comboBox7);
             this.groupBox12.Controls.Add(this.label168);
             this.groupBox12.Controls.Add(this.comboBox8);
             this.groupBox12.Controls.Add(this.label164);
@@ -6203,7 +6203,7 @@
             // 
             this.comboBox17.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox17.FormattingEnabled = true;
-            this.comboBox17.Location = new System.Drawing.Point(460, 370);
+            this.comboBox17.Location = new System.Drawing.Point(70, 310);
             this.comboBox17.Name = "comboBox17";
             this.comboBox17.Size = new System.Drawing.Size(63, 20);
             this.comboBox17.TabIndex = 47;
@@ -6221,7 +6221,7 @@
             // 
             this.comboBox18.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox18.FormattingEnabled = true;
-            this.comboBox18.Location = new System.Drawing.Point(330, 370);
+            this.comboBox18.Location = new System.Drawing.Point(200, 310);
             this.comboBox18.Name = "comboBox18";
             this.comboBox18.Size = new System.Drawing.Size(63, 20);
             this.comboBox18.TabIndex = 45;
@@ -6239,7 +6239,7 @@
             // 
             this.comboBox19.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox19.FormattingEnabled = true;
-            this.comboBox19.Location = new System.Drawing.Point(200, 370);
+            this.comboBox19.Location = new System.Drawing.Point(330, 310);
             this.comboBox19.Name = "comboBox19";
             this.comboBox19.Size = new System.Drawing.Size(63, 20);
             this.comboBox19.TabIndex = 43;
@@ -6257,7 +6257,7 @@
             // 
             this.comboBox20.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox20.FormattingEnabled = true;
-            this.comboBox20.Location = new System.Drawing.Point(70, 370);
+            this.comboBox20.Location = new System.Drawing.Point(460, 310);
             this.comboBox20.Name = "comboBox20";
             this.comboBox20.Size = new System.Drawing.Size(63, 20);
             this.comboBox20.TabIndex = 41;
@@ -6275,7 +6275,7 @@
             // 
             this.comboBox21.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox21.FormattingEnabled = true;
-            this.comboBox21.Location = new System.Drawing.Point(460, 310);
+            this.comboBox21.Location = new System.Drawing.Point(70, 370);
             this.comboBox21.Name = "comboBox21";
             this.comboBox21.Size = new System.Drawing.Size(63, 20);
             this.comboBox21.TabIndex = 39;
@@ -6293,7 +6293,7 @@
             // 
             this.comboBox22.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox22.FormattingEnabled = true;
-            this.comboBox22.Location = new System.Drawing.Point(330, 310);
+            this.comboBox22.Location = new System.Drawing.Point(200, 370);
             this.comboBox22.Name = "comboBox22";
             this.comboBox22.Size = new System.Drawing.Size(63, 20);
             this.comboBox22.TabIndex = 37;
@@ -6311,7 +6311,7 @@
             // 
             this.comboBox23.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox23.FormattingEnabled = true;
-            this.comboBox23.Location = new System.Drawing.Point(200, 310);
+            this.comboBox23.Location = new System.Drawing.Point(330, 370);
             this.comboBox23.Name = "comboBox23";
             this.comboBox23.Size = new System.Drawing.Size(63, 20);
             this.comboBox23.TabIndex = 35;
@@ -6329,7 +6329,7 @@
             // 
             this.comboBox24.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox24.FormattingEnabled = true;
-            this.comboBox24.Location = new System.Drawing.Point(70, 310);
+            this.comboBox24.Location = new System.Drawing.Point(460, 370);
             this.comboBox24.Name = "comboBox24";
             this.comboBox24.Size = new System.Drawing.Size(63, 20);
             this.comboBox24.TabIndex = 33;
@@ -6347,7 +6347,7 @@
             // 
             this.comboBox9.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox9.FormattingEnabled = true;
-            this.comboBox9.Location = new System.Drawing.Point(460, 250);
+            this.comboBox9.Location = new System.Drawing.Point(70, 190);
             this.comboBox9.Name = "comboBox9";
             this.comboBox9.Size = new System.Drawing.Size(63, 20);
             this.comboBox9.TabIndex = 31;
@@ -6365,7 +6365,7 @@
             // 
             this.comboBox10.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox10.FormattingEnabled = true;
-            this.comboBox10.Location = new System.Drawing.Point(330, 250);
+            this.comboBox10.Location = new System.Drawing.Point(200, 190);
             this.comboBox10.Name = "comboBox10";
             this.comboBox10.Size = new System.Drawing.Size(63, 20);
             this.comboBox10.TabIndex = 29;
@@ -6383,7 +6383,7 @@
             // 
             this.comboBox11.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox11.FormattingEnabled = true;
-            this.comboBox11.Location = new System.Drawing.Point(200, 250);
+            this.comboBox11.Location = new System.Drawing.Point(328, 190);
             this.comboBox11.Name = "comboBox11";
             this.comboBox11.Size = new System.Drawing.Size(63, 20);
             this.comboBox11.TabIndex = 27;
@@ -6401,7 +6401,7 @@
             // 
             this.comboBox12.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox12.FormattingEnabled = true;
-            this.comboBox12.Location = new System.Drawing.Point(70, 250);
+            this.comboBox12.Location = new System.Drawing.Point(458, 190);
             this.comboBox12.Name = "comboBox12";
             this.comboBox12.Size = new System.Drawing.Size(63, 20);
             this.comboBox12.TabIndex = 25;
@@ -6419,7 +6419,7 @@
             // 
             this.comboBox13.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox13.FormattingEnabled = true;
-            this.comboBox13.Location = new System.Drawing.Point(460, 190);
+            this.comboBox13.Location = new System.Drawing.Point(70, 250);
             this.comboBox13.Name = "comboBox13";
             this.comboBox13.Size = new System.Drawing.Size(63, 20);
             this.comboBox13.TabIndex = 23;
@@ -6437,7 +6437,7 @@
             // 
             this.comboBox14.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox14.FormattingEnabled = true;
-            this.comboBox14.Location = new System.Drawing.Point(330, 190);
+            this.comboBox14.Location = new System.Drawing.Point(200, 250);
             this.comboBox14.Name = "comboBox14";
             this.comboBox14.Size = new System.Drawing.Size(63, 20);
             this.comboBox14.TabIndex = 21;
@@ -6455,7 +6455,7 @@
             // 
             this.comboBox15.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox15.FormattingEnabled = true;
-            this.comboBox15.Location = new System.Drawing.Point(200, 190);
+            this.comboBox15.Location = new System.Drawing.Point(330, 250);
             this.comboBox15.Name = "comboBox15";
             this.comboBox15.Size = new System.Drawing.Size(63, 20);
             this.comboBox15.TabIndex = 19;
@@ -6473,7 +6473,7 @@
             // 
             this.comboBox16.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox16.FormattingEnabled = true;
-            this.comboBox16.Location = new System.Drawing.Point(70, 190);
+            this.comboBox16.Location = new System.Drawing.Point(460, 250);
             this.comboBox16.Name = "comboBox16";
             this.comboBox16.Size = new System.Drawing.Size(63, 20);
             this.comboBox16.TabIndex = 17;
@@ -6491,7 +6491,7 @@
             // 
             this.comboBox5.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox5.FormattingEnabled = true;
-            this.comboBox5.Location = new System.Drawing.Point(460, 130);
+            this.comboBox5.Location = new System.Drawing.Point(70, 130);
             this.comboBox5.Name = "comboBox5";
             this.comboBox5.Size = new System.Drawing.Size(63, 20);
             this.comboBox5.TabIndex = 15;
@@ -6509,7 +6509,7 @@
             // 
             this.comboBox6.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox6.FormattingEnabled = true;
-            this.comboBox6.Location = new System.Drawing.Point(330, 130);
+            this.comboBox6.Location = new System.Drawing.Point(200, 130);
             this.comboBox6.Name = "comboBox6";
             this.comboBox6.Size = new System.Drawing.Size(63, 20);
             this.comboBox6.TabIndex = 13;
@@ -6527,7 +6527,7 @@
             // 
             this.comboBox7.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox7.FormattingEnabled = true;
-            this.comboBox7.Location = new System.Drawing.Point(200, 130);
+            this.comboBox7.Location = new System.Drawing.Point(330, 130);
             this.comboBox7.Name = "comboBox7";
             this.comboBox7.Size = new System.Drawing.Size(63, 20);
             this.comboBox7.TabIndex = 11;
@@ -6545,7 +6545,7 @@
             // 
             this.comboBox8.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox8.FormattingEnabled = true;
-            this.comboBox8.Location = new System.Drawing.Point(70, 130);
+            this.comboBox8.Location = new System.Drawing.Point(460, 130);
             this.comboBox8.Name = "comboBox8";
             this.comboBox8.Size = new System.Drawing.Size(63, 20);
             this.comboBox8.TabIndex = 9;
