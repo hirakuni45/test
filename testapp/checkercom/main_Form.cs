@@ -41,7 +41,8 @@ namespace checkercom
         private OpenFileDialog csv;             // ファイルを開く
         private SaveFileDialog sfd;             // 名前を付けて保存
         private MySerialPort MySerialPort;
-        private int tabPageIndex;
+        private int tabPageIndex = 0;
+        private uint pinAssignPad = 0;
 
         public Common common;         // 共通クラス
         const string CRLF = "\r\n";
@@ -161,6 +162,7 @@ namespace checkercom
             PinAssignList[23] = comboBox24;
 
             tabPageIndex = 0;
+            pinAssignPad = 0;
         }
 
 
@@ -1616,6 +1618,19 @@ namespace checkercom
             Cursor.Current = Cursors.Default;
         }
 
+
+        uint CreatePinAssignPad()
+        {
+            uint pad = 0;
+            for (int i = 0; i < PinListIndex; ++i)
+            {
+                string nb = PinList[Common.SelectDev, i].PinNum;
+                pad |= (uint)(1 << (int.Parse(nb)));
+            }
+            return pad;
+        }
+
+
         //タブ選択時 特殊処理
         private void tabControl1_Selecting(object sender, TabControlCancelEventArgs e)
         {
@@ -1653,16 +1668,22 @@ namespace checkercom
                 UpdateCommandList(0);
 
             }
-            if (e.TabPageIndex == 7)    //配線コピー定義
-            {
-                setupPinAssign_group();
-            }
 
-            if (tabPageIndex == 2 && e.TabPageIndex != 2) // 配線定義から出た
+            if (tabPageIndex == 2 && e.TabPageIndex != 2) // 配線定義から出たら、ピンコピーのGUIを再構築する。
             {
-                setupPinAssign_gui();
+                uint pad = CreatePinAssignPad();
+                if (pinAssignPad != pad)  // 前の状態に変化が起きた場合構築をやり直す。
+                {
+                    setupPinAssign_gui();
+                }
+                pinAssignPad = pad;
             }
             tabPageIndex = e.TabPageIndex;
+
+            if (e.TabPageIndex == 7)    //配線コピー定義
+            {
+                setupPinAssign_group();  // Item のEnable/Disable を設定
+            }
         }
 
         private void lv_CommandList_SelectedIndexChanged(object sender, EventArgs e)
@@ -2090,28 +2111,22 @@ namespace checkercom
 
                     }
                 }
+ 
                 // 配線コピー情報
                 fs.Write("#PinCopyInformation#" + CRLF);
-                int pincnt = 0;
-                string l = "";
+                if(checkBox1.CheckState == CheckState.Checked)
+                {
+                    fs.Write("ENA");
+                } 
+                else
+                {
+                    fs.Write("DIS");
+                }
                 for(i = 0; i < PinAssignList.Length; ++i)
                 {
-                    if(PinAssignList[i].Enabled)
-                    {
-                        if(PinAssignList[i].Items.Count > 0)
-                        {
-                            ++pincnt;
-                            l += PinAssignList[i].Items.Count.ToString() + ",";
-                        }
-                        for(int n = 0; n < PinAssignList[i].Items.Count; ++n)
-                        {
-                            l += PinAssignList[i].Items[n].ToString() + ",";
-                        }
-                        if (PinAssignList[i].Items.Count > 0) { l += CRLF; }
-                    }
+                    fs.Write("," + PinAssignList[i].SelectedItem.ToString());
                 }
-                fs.Write(pincnt.ToString() + CRLF);
-                fs.Write(l);
+                fs.Write(CRLF);
                 //閉じる
                 fs.Close();
                 MessageBox.Show("ファイルを保存しました。", "ファイル保存", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2129,6 +2144,7 @@ namespace checkercom
             int errornum = 0;
             int[] comcnt = new int[64];
             int id = 0;
+            string[] pincopy = { "" };
 
             if (MessageBox.Show("指定ファイルのコマンド定義を読み込みます。", "内部データの初期化",
                 MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
@@ -2154,26 +2170,30 @@ namespace checkercom
                             {
                                 Common.ReadProc = 1;
                                 //                                    break;
-                            }
+                            } else
                             if (column[0] == "#DeviceInformation#")
                             {
                                 Common.ReadProc = 2;
                                 //                                    break;
-                            }
+                            } else
                             if (column[0] == "#PinInformation#")
                             {
                                 Common.ReadProc = 3;
                                 //                                    break;
-                            }
+                            } else
                             if (column[0] == "#CommandInformation#")
                             {
                                 Common.ReadProc = 4;
                                 //                                    break;
-                            }
+                            } else
                             if (column[0] == "#CommandInstruction#")
                             {
                                 Common.ReadProc = 5;
                                 //                                    break;
+                            } else
+                            if(column[0] == "#PinCopyInformation#")
+                            {
+                                Common.ReadProc = 6;
                             }
                         }
                         else
@@ -2341,6 +2361,10 @@ namespace checkercom
                                         Common.ReadProc = 0;
                                     }
                                     break;
+                                case 6:  // ピンコピー情報
+                                    pincopy = column;
+                                    Common.ReadProc = 0;
+                                    break;
                                 default:
                                     break;
                             }
@@ -2377,6 +2401,28 @@ namespace checkercom
                     UpdatePinList(0);
                     UpdateComList(0);
                     UpdateCommandList(0);
+
+                    // 配線コピーの状態を作成
+                    setupPinAssign_gui();
+                    pinAssignPad = CreatePinAssignPad();
+                    if (pincopy.Length == 25)
+                    {
+                        if(pincopy[0] == "ENA")
+                        {
+                            checkBox1.Checked = true;
+                        } else if(pincopy[0] == "DIS")
+                        {
+                            checkBox1.Checked = false;
+                        }
+                        for(int i = 0; i < (int)ConstGui.MAX_PIN_ITEMLIST; ++i)
+                        {
+                            // s += "(" + PinAssignList[i].Items.Count.ToString() + ") ";
+                            PinAssignList[i].SelectedItem = pincopy[i + 1];
+                            // s += pincopy[i + 1] + ", ";
+                        }
+                        // MessageBox.Show(s, "PinCopy", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    setupPinAssign_group();
 
                     MessageBox.Show("ファイルを読み込みました。", "読み込みの終了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
