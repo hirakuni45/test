@@ -65,9 +65,9 @@ CC			=	pic30-gcc
 CP			=
 AR			=	pic30-ar
 LD			=	pic30-ld
-OBJCOPY		=	pic30-objcopy
+OBJCOPY		=
 OBJDUMP		=	pic30-objdump
-SIZE		=	pic30-size
+SIZE		=
 HEX			=   pic30-bin2hex
 
 # AFLAGS        = -Wa,-adhlns=$(<:.s=.lst),-gstabs
