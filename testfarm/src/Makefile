@@ -39,16 +39,15 @@ OPTIMIZE	=	-O1 -mlarge-code -mlarge-data -mlarge-scalar -mconst-in-data
 
 MCU_TARGET  =   -mcpu=$(DEVICE)
 
+CC_OPT		=	-Wall -Werror \
+				-Wno-unused-variable \
+				-fno-exceptions
+#CC_OPT		=	-x c
+
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
 				-Wno-unused-function \
 				-fno-exceptions
-
-#CC_OPT		=	-Wall -Werror \
-#				-Wno-unused-variable \
-#				-fno-exceptions
-#CC_OPT		=	-x c
-CC_OPT		=
 
 SYSINCS		=	$(addprefix -I, $(INC_SYS))
 APPINCS		=	$(addprefix -I, $(INC_APP))
