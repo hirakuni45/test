@@ -262,7 +262,7 @@ int get_device_info(void){
 
 	for (i=0;i<16;i++){
 		ID_name[i]=read_eeprom(i);
-		if(ID_name[i]==0xff){
+		if(ID_name[i] == -1){
 			ID_name[i]=NULL;
 			break;
 		}

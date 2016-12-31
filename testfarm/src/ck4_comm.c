@@ -25,7 +25,7 @@ void send_comma(void);
 byte exec_command(char *);
 
 char Make40bit(int);
-void fpga_writemem(void);
+void fpga_writemem();
 void LtoA(unsigned long dat,char *buf);
 unsigned long Ascii2Ulong(char *);
 
@@ -65,14 +65,25 @@ const ComTblST CommandTable[]={
 {"",0}
 };
 
-const char serial_str[]={"UDT_SERIAL      "};
+const char serial_str[] = {"UDT_SERIAL      "};
+
+const char copy_tbl_[24] = {
+	32, 32, 32,
+	 0,  1,  2,
+	 0,  1,  2,
+	 0,  1,  2,
+	 0,  1,  2,
+	 0,  1,  2,
+	 0,  1,  2,
+	 0,  1,  2
+};
 
 // USARTコマンドハンドラ
 void usart_command_handler(void)
 {
 	static char	command[BUFMAX_COMMAND+1];		// コマンドバッファ
-	static char	idx_command = 0;				// コマンドバッファの書込みポインタ
-	static int		packet_receiving = 0;			// パケット受信中フラグ
+	static unsigned int	idx_command = 0;		// コマンドバッファの書込みポインタ
+	static int	packet_receiving = 0;			// パケット受信中フラグ
 	char c; 										// 文字格納用
 //	int pp;	
 
@@ -95,7 +106,7 @@ void usart_command_handler(void)
 			}
 		} else {
 			// 改行コード以外はバッファに格納
-			if (idx_command >= BUFMAX_COMMAND) {
+			if ((unsigned char)idx_command >= BUFMAX_COMMAND) {
 				idx_command = 0;
 			} else {
 				command[idx_command++] = c;
@@ -113,6 +124,21 @@ void usart_command_handler(void)
 	}
 }
 
+// データのコピー
+unsigned long copy_bits(unsigned long d)
+{
+	byte i;
+	for(i = 0; i < 24; ++i) {
+		char src = copy_tbl_[i];
+		if(src < 0 || src >= 24) continue;  // 範囲外は[NC]
+		if((d & (1L << src)) != 0) {
+			d |=   1L << i;
+		} else {
+			d &= ~(1L << i);
+		}
+	}
+	return d;
+}
 
 // USARTコマンド実行
 //void exec_command(uchar *com)
@@ -125,7 +151,9 @@ byte exec_command(char *com)
 	char  seps[] = ",";								// 分離文字
 	char *string;									// コマンド文字列
 	char *cmd;										// コマンド
-	char cmp,error1,error2,e3,cmd_no1,cmd_no2;
+	char cmp,error1,error2,e3;
+	byte cmd_no1;
+	char cmd_no2;
 	long arg;
 	char tmpc[10];
 	byte tmpb;
@@ -154,7 +182,9 @@ byte exec_command(char *com)
 
 
 	//コマンド検索(固定)
-	cmd_no1=0;error1=error2=0;
+	cmd_no1 = 0;
+	error1 = 0;
+	error2 = 0;
 	while(1){
 		cmp=0;
 		if(CommandTable[cmd_no1].Command[0]==NULL)
@@ -198,15 +228,17 @@ byte exec_command(char *com)
 			}
 		}
 
-		cmd_no2=0;error2=1;
-		for(i=0;i<command_num;i++){
-			if(strcmp(cmd,command_name[i])==0){
-				error2=0;
+		// コマンド数をカウント
+		cmd_no2 = 0;
+		error2 = 1;
+		for(i=0; i < command_num; i++) {
+			if(strcmp(cmd, (char *)command_name[i]) == 0) {
+				error2 = 0;
 				break;
 			}
-			++cmd_no2;		
+			++cmd_no2;	
 		}
-		if(error2==0){		//引数チェックしない。maxminでチェック。
+		if(error2 == 0) {  //引数チェックしない。maxminでチェック。
 		}
 	}
 
@@ -255,7 +287,7 @@ cmd_trns:
 				if(busy_flg!=0)goto busy_proc;
 				tmpi1=atoi(com_data[0]);
 				tmpi2=atoi(com_data[1]);
-				if(tmpi1>65535)goto error_proc;
+///				if(tmpi1 > 65535) goto error_proc;
 				if(tmpi2>3)goto error_proc;
 				clk_period=tmpi1;
 				clk_phase=tmpi2;
@@ -368,9 +400,9 @@ cmd_trns:
 		}
 	}
 	else{						//設定コマンド
-		if(busy_flg!=0)goto busy_proc;
-		e3=Make40bit(cmd_no2);
-		if (e3!=0) goto error_proc;
+		if(busy_flg!=0) goto busy_proc;
+		e3 = Make40bit(cmd_no2);
+		if (e3 != 0) goto error_proc;
 		fpga_TWE(pintofpga[0]);
 		fpga_Control(clk_period,clk_phase);
 		fpga_writemem();
@@ -411,8 +443,8 @@ void PinAnalyze()
 	}
 
 	for(i=0;i<24;i++){
-		p1=pin_info[i][0];
-		p2=pin_info[i][1];
+		p1 = pin_info[i][0];
+		p2 = pin_info[i][1];
 
 		if((p1&0x80)!=0){	//使われている
 			if((p1&0x40)!=0){
@@ -422,14 +454,14 @@ void PinAnalyze()
 			else if((p1&0x20)==0){//制御線
 				usepin[p2+1]=0x80+(p1&0x0f);
 				pintofpga[p2+1]=i;
-				init+=((p1&0x10)>>4)<<i;
+				init += ((p1 & 0x10) >> 4) << i;
 			}
 			else {				//DATA線 or AUX
 				if((p1&0x1f)>23){  //AUX線
 					usepin[(p1&0x1f)-16]=0x80;
 					pintofpga[(p1&0x1f)-16]=i;
-					auxno=(p1&0x1f)-24;
-					init+=(((unsigned long)aux_init>>auxno)&0x01L)<<i;
+					auxno = (p1 & 0x1f) - 24;
+					init += (((unsigned long)aux_init>>auxno)&0x01L)<<i;
 				}
 				else{
 					usepin[(p1&0x1f)+16]=0x80;
@@ -440,11 +472,12 @@ void PinAnalyze()
 		
 		}
 	}
-	
-	out_init=init;
-	data_width=datacnt;
+
+	out_init = init;
+
+	data_width = datacnt;
 	for (i=0;i<datacnt;i++){
-		data_mask|=b<<i;
+		data_mask |= b << i;
 	}
 }
 
@@ -468,7 +501,7 @@ char Make40bit(int comnum)
 //	byte xx,yy;
 	unsigned long bb=1;
 
-	unsigned int proccnt;		//繰り返しのために、カウントしておく
+	unsigned int proccnt = 0;		//繰り返しのために、カウントしておく
 	unsigned long repeat;
 
 //	char arg[20];
@@ -481,59 +514,72 @@ char Make40bit(int comnum)
 
 	unsigned int memadr;
 
-	memadr=command_mem[comnum];		//Commadn HEAD
+	memadr = command_mem[comnum];  // Commadn HEAD
 
 	for(i=0;i<DEFINE_MAX;i++){
 		ctrl=0;
 		dat=0;
 		
-		b[0]=command_define[memadr+comadr];comadr++;
-		b[1]=command_define[memadr+comadr];comadr++;
-		for (j=0;j<8;j++){//制御線
-			if((usepin[j]&0x80)!=0){		//使用
-				property=(~(b[0]>>6))&0x3;
-				ctrl|=((usepin[j]>>property)&0x1)<<j;
+		b[0] = command_define[memadr + comadr];
+		comadr++;
+		b[1] = command_define[memadr + comadr];
+		comadr++;
+		for(j = 0; j < 8; j++){  //制御線
+			if((usepin[j] & 0x80)!=0){		//使用
+				property = (~(b[0] >> 6)) & 0x3;
+				ctrl |= ((usepin[j] >> property) & 0x1) << j;
 			}
 		}
-		ctrl|=((unsigned int)b[1])<<8;	//AUX
+		ctrl |= ((unsigned int)b[1]) << 8;	//AUX
 
-		//DATA
-		if ((b[0]&0x3f)!=0x1f) proccnt=0;
-		switch((b[0]&0x3f)){
+		// DATA
+		if((b[0] & 0x3f) != 0x1f) proccnt = 0;
+		switch((b[0] & 0x3f)) {
 			case 0:	
 				break;
 			case 1:// 定数
-				b[2]=command_define[memadr+comadr];comadr++;
-				b[3]=command_define[memadr+comadr];comadr++;
-				b[4]=command_define[memadr+comadr];comadr++;
-				dat=(unsigned long)b[2]+((unsigned long)b[3]<<8)+((unsigned long)b[4]<<16);
-				outdat[datadr].control=ctrl;
-				outdat[datadr].dt=dat;datadr++;proccnt++;
+				b[2] = command_define[memadr + comadr];
+				comadr++;
+				b[3] = command_define[memadr + comadr];
+				comadr++;
+				b[4] = command_define[memadr + comadr];
+				comadr++;
+				dat = (unsigned long)b[2] + ((unsigned long)b[3] << 8) + ((unsigned long)b[4] << 16);
+				outdat[datadr].control = ctrl;
+				outdat[datadr].dt = dat;
+				datadr++;
+				proccnt++;
 				break;
-			case 2://引数
-				b[2]=command_define[memadr+comadr];comadr++;
-				outnum=b[2]>>5;
-				argnum=b[2]&0xf;
-				if ((b[2]&0x10)!=0){
-					argument=Ascii2Ulong(com_data[argnum]);
+			case 2: // 引数
+				b[2] = command_define[memadr + comadr];
+				comadr++;
+				outnum = b[2] >> 5;
+				argnum = b[2] & 0xf;
+				if ((b[2] & 0x10) != 0){
+					argument = Ascii2Ulong(com_data[argnum]);
 				}
 				else {
-					argument=atol(com_data[argnum]);
+					argument = atol(com_data[argnum]);
 				}
-				dat=argument;
-				for (k=0;k<outnum+1;k++){
-					outdat[datadr].control=ctrl;
-					outdat[datadr].dt=(dat&data_mask);datadr++;proccnt++;
-					dat=dat>>data_width;					
+				dat = argument;
+				for (k = 0; k < outnum + 1; k++) {
+					outdat[datadr].control = ctrl;
+					outdat[datadr].dt = dat & data_mask;
+					datadr++;
+					proccnt++;
+					dat = dat >> data_width;					
 				}
-				if(dat!=0) goto error_p;	//残っているのは変
+				if(dat != 0) goto error_p;	//残っているのは変
 				break;
-			case 3://除算bit
-				b[2]=command_define[memadr+comadr];comadr++;
-				b[3]=command_define[memadr+comadr];comadr++;
-				b[4]=command_define[memadr+comadr];comadr++;
-				outnum=b[2]>>5;
-				argnum=b[2]&0xf;
+			case 3: // 除算bit
+				b[2] = command_define[memadr + comadr];
+				comadr++;
+				b[3] = command_define[memadr + comadr];
+				comadr++;
+				b[4] = command_define[memadr + comadr];
+				comadr++;
+				outnum = b[2] >> 5;
+				argnum = b[2] & 0xf;
 				if ((b[2]&0x10)!=0){
 					argument=Ascii2Ulong(com_data[argnum]);
 				}
@@ -545,9 +591,12 @@ char Make40bit(int comnum)
 				dat=(argument-1)/(mm+1)+1;
 				dat=bb<<(dat-1);
 				if(dat==0)goto error_p;		//bitが無いのは変
-				for (k=0;k<outnum+1;k++){
+
+				for (k = 0; k < outnum + 1; k++){
 					outdat[datadr].control=ctrl;
-					outdat[datadr].dt=(dat&data_mask);datadr++;proccnt++;
+					outdat[datadr].dt = (dat & data_mask);
+					datadr++;
+					proccnt++;
 					dat=dat>>data_width;					
 				}
 				if(dat!=0) goto error_p;	//残っているのは変
@@ -572,7 +621,9 @@ char Make40bit(int comnum)
 				dat=((argument-1)/(mm+1))+kk;
 				for (k=0;k<outnum+1;k++){
 					outdat[datadr].control=ctrl;
-					outdat[datadr].dt=(dat&data_mask);datadr++;proccnt++;
+					outdat[datadr].dt = (dat & data_mask);
+					datadr++;
+					proccnt++;
 					dat=dat>>data_width;					
 				}
 				if(dat!=0) goto error_p;	//残っているのは変
@@ -585,7 +636,7 @@ char Make40bit(int comnum)
 				b[6]=command_define[memadr+comadr];comadr++;
 				outnum=b[2]>>5;
 				argnum=b[2]&0xf;
-				if ((b[2]&0x10)!=0){
+				if ((b[2]&0x10)!=0) {
 					argument=Ascii2Ulong(com_data[argnum]);
 				}
 				else {
@@ -602,7 +653,9 @@ char Make40bit(int comnum)
 						dat = bb<<(tds-cnt);tds_chk=1;
 					}
 					outdat[datadr].control=ctrl;
-					outdat[datadr].dt=(dat&data_mask);datadr++;proccnt++;
+					outdat[datadr].dt= (dat & data_mask);
+					datadr++;
+					proccnt++;
 					cnt+=data_width;					
 				}
 				if(tds_chk==0) goto error_p;	//残っているのは変
@@ -619,10 +672,11 @@ char Make40bit(int comnum)
 				}
 				dat=argument;
 				for (k=0;k<outnum;k++){
-					dat=dat>>data_width;
+					dat = dat >> data_width;
 				}
 				outdat[datadr].control=ctrl;
-				outdat[datadr].dt=(dat&data_mask);datadr++;proccnt++;
+				outdat[datadr].dt = (dat & data_mask);
+				datadr++;proccnt++;
 				break;
 			case 7://指定bit
 				b[2]=command_define[memadr+comadr];comadr++;
@@ -639,12 +693,13 @@ char Make40bit(int comnum)
 				if ((b[4]>31)||(b[3]>31)){
 					goto error_p;	
 				}
-				dat=argument;
-				dat=dat<<(31-b[4]);
-				dat=dat>>(31-b[4]+b[3]);
+				dat = argument;
+				dat = dat << (31 - b[4]);
+				dat = dat >> (31 - b[4] + b[3]);
 				for (k=0;k<outnum+1;k++){
 					outdat[datadr].control=ctrl;
-					outdat[datadr].dt=(dat&data_mask);datadr++;proccnt++;
+					outdat[datadr].dt = (dat & data_mask);
+					datadr++;proccnt++;
 					dat=dat>>data_width;					
 				}
 
@@ -697,39 +752,42 @@ error_p:
 //40bit→fpga
 //input:outdat,outdat_cnt
 //output:FPGA 
-void fpga_writemem(void){
-	unsigned long data;
+void fpga_writemem() {
 	unsigned long d1=1;
 	unsigned long mask=0;
-//	int adr=0;
-	int i,j,k,pin;
+	int i, j, k;
 
 	fpga_setadrs(0);
 	//初期値セット
-	fpga_setdata(out_init,mask);
+	fpga_setdata(copy_bits(out_init), mask);
 	//データセット
-	for(i=0;i<outdat_cnt;i++)
+	for(i = 0; i < outdat_cnt; i++)
 	{
-		if((outdat[i].dt&0xC0000000)==0){
-			data=0;pin=0;mask=0;
-			for(j=0;j<5;j++){
-				for(k=0;k<8;k++){
-					if((usepin[pin]&0x80)!=0){
-						data|=(d1&(outdat[i].db[j]>>k))<<pintofpga[pin];	//bit操作
+		unsigned long data = 0;
+		int pin;
+		if((outdat[i].dt & 0xC0000000)==0){
+			data = 0;
+			pin = 0;
+			mask = 0;
+			for(j = 0; j < 5; j++) {
+				for(k = 0; k < 8; k++) {
+					if((usepin[pin] & 0x80) != 0) {
+						data |= (d1 & (outdat[i].db[j] >> k)) << pintofpga[pin];  //bit操作
 					}
 					pin++;
 				}
 			}
+			data = copy_bits(data);
 		}
-		else if((outdat[i].dt&0x80000000)!=0){//HW
-			mask=0;
-			data=outdat[i].dt&0xffffff;
+		else if((outdat[i].dt & 0x80000000) != 0) { //HW
+			mask = 0;
+			data = outdat[i].dt & 0xffffff;
 		}
-		else if((outdat[i].dt&0x40000000)!=0){//DELAY
-			mask=0x1000000;
-			data=outdat[i].dt&0xffffff;
+		else if((outdat[i].dt & 0x40000000) != 0){ //DELAY
+			mask = 0x1000000;
+			data = outdat[i].dt & 0xffffff;
 		}
-		fpga_setdata(data,mask);
+		fpga_setdata(data, mask);
 
 	}
 	//終了セット
@@ -769,6 +827,7 @@ void BINtoHEX(byte dat,char *buf){
 	else *(buf+1)=(char)(b1+48);
 
 }
+
 //long をascii MAX99999
 void LtoA(unsigned long dat,char *buf){
 	unsigned long a,s;

@@ -62,7 +62,7 @@ void fpga_1clear(void)
 	SLT=0;
 }
 
-void fpga_Control(unsigned int pc,int twe)
+void fpga_Control(unsigned int pc, int twe)
 {
 	unsigned long dat=0;
 	while(BUSY!=0){}
@@ -114,7 +114,7 @@ void fpga_TWE(int b)
 
 	while(BUSY!=0){}
 	SLC=TWEasign;
-	if(b<24)	dat=di<<b;
+	if(b<24) dat = di << b;
 	else dat=0;
 	fpga_datset(dat);
 	SLT=0;

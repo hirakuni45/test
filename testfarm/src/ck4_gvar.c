@@ -27,7 +27,7 @@ typedef struct{
 	int dev_no;
 	char com_name[16][5];
 	unsigned long eeprom_adr;
-}device_str;
+} device_str;
 
 device_str device_info[16];
 
@@ -38,10 +38,10 @@ typedef union{
 	};
 	byte db[6];
 	unsigned long dl;
-}data_str;
+} data_str;
 
-int outdat_cnt;				//40bitデータの数
-data_str outdat[FPGA_MEMORY];		//40bitデータ
+int outdat_cnt;				// 40bitデータの数
+data_str outdat[FPGA_MEMORY];		// 40bitデータ
 //unsigned long outdat24[2048];
 
 byte command_num;
