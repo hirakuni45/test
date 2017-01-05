@@ -67,17 +67,6 @@ const ComTblST CommandTable[]={
 
 const char serial_str[] = {"UDT_SERIAL      "};
 
-const char copy_tbl_[24] = {
-	32, 32, 32,
-	 0,  1,  2,
-	 0,  1,  2,
-	 0,  1,  2,
-	 0,  1,  2,
-	 0,  1,  2,
-	 0,  1,  2,
-	 0,  1,  2
-};
-
 // USARTコマンドハンドラ
 void usart_command_handler(void)
 {
@@ -129,7 +118,7 @@ unsigned long copy_bits(unsigned long d)
 {
 	byte i;
 	for(i = 0; i < 24; ++i) {
-		char src = copy_tbl_[i];
+		char src = pin_copy_tbl[i];
 		if(src < 0 || src >= 24) continue;  // 範囲外は[NC]
 		if((d & (1L << src)) != 0) {
 			d |=   1L << i;
@@ -437,23 +426,24 @@ void PinAnalyze()
 	unsigned long b=1; 
 	
 	//usepin,pintofpga 作成
-	for (i=0;i<40;i++){
-		pintofpga[i]=0;
-		usepin[i]=0;
+	for (i = 0; i < 40; i++) {
+		pintofpga[i] = 0;
+		usepin[i] = 0;
 	}
+	pintofpga[0] = 24;  // TWE の無効初期値
 
 	for(i=0;i<24;i++){
 		p1 = pin_info[i][0];
 		p2 = pin_info[i][1];
 
-		if((p1&0x80)!=0){	//使われている
-			if((p1&0x40)!=0){
-				usepin[0]=0x80;//TWE
-				pintofpga[0]=i;
-			}	
-			else if((p1&0x20)==0){//制御線
-				usepin[p2+1]=0x80+(p1&0x0f);
-				pintofpga[p2+1]=i;
+		if((p1 & 0x80) != 0){	// 使われている
+			if((p1 & 0x40) != 0){
+				usepin[0] = 0x80; // TWE
+				pintofpga[0] = i;
+			}
+			else if((p1 & 0x20) == 0) {  //制御線
+				usepin[p2+1] = 0x80 + (p1 & 0x0f);
+				pintofpga[p2+1] = i;
 				init += ((p1 & 0x10) >> 4) << i;
 			}
 			else {				//DATA線 or AUX
@@ -749,6 +739,9 @@ error_p:
 	return 1;
 }
 
+
+void BINtoHEX(byte dat,char *buf);
+
 //40bit→fpga
 //input:outdat,outdat_cnt
 //output:FPGA 
@@ -756,6 +749,18 @@ void fpga_writemem() {
 	unsigned long d1=1;
 	unsigned long mask=0;
 	int i, j, k;
+
+#if 0
+	char tmp[4];
+	for(i = 0; i < 24; ++i) {
+		char src = pin_copy_tbl[i];
+		BINtoHEX((byte)src, tmp);
+		tmp[2] = ' ';
+		tmp[3] = 0;
+		usart_puts(tmp);
+	}
+	usart_puts("\n");
+#endif
 
 	fpga_setadrs(0);
 	//初期値セット
@@ -935,6 +940,7 @@ void eep_readproc(void){
 		usart_puts("DONE\r\n");
 	}
 }
+
 unsigned long Ascii2Ulong(char *s)
 {
 	byte	i=0;

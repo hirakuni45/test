@@ -320,6 +320,12 @@ int get_device_info(void){
 
 			PinAnalyze();
 
+			// pin copy info (24 bytes)
+			for(j = 0; j < 24; ++j) {
+				pin_copy_tbl[j] = read_eeprom(eepadr);
+				eepadr++;
+			}
+
 			for(j=0;j<cn;j++){
 				command_name[j][0]=read_eeprom(eepadr);eepadr++;
 				command_name[j][1]=read_eeprom(eepadr);eepadr++;
@@ -376,7 +382,8 @@ int get_device_info(void){
 				mem_lost=1;
 				goto end_p;
 			}
-			eepadr+=54;
+			eepadr += 54;
+			eepadr += 16;  // pin copy info (24 bytes)
 			for(j=0;j<cn;j++){
 				eepadr+=4;
 				cm=0;

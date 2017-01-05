@@ -26,7 +26,7 @@ void fpga_init(void)
 	__delay_ms(300);
 	while(BUSY!=0){}
 	fpga_serial(0,0,0);
-	fpga_TWE(0);
+	fpga_TWE(24);
 	fpga_Control(20,0);
 
 //	fpga_debug();			//FPGA debug
@@ -115,7 +115,7 @@ void fpga_TWE(int b)
 	while(BUSY!=0){}
 	SLC=TWEasign;
 	if(b<24) dat = di << b;
-	else dat=0;
+	else dat = 0;
 	fpga_datset(dat);
 	SLT=0;
     SLT=1;

@@ -127,6 +127,11 @@ void init(void)
 	uart_init();		// uart初期化
 	timer_init();		// タイマー初期化
 	i2c_init();		// I2C初期化(Master Mode)
+
+	int i;
+	for(i = 0; i < 24; ++i) {
+		pin_copy_tbl[i] = -1;
+	}
 }
 
 void var_init(void){

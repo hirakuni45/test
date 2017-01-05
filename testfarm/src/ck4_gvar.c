@@ -92,6 +92,7 @@ int serial_pin[4];
 
 char *com_data[BUFMAX_LENGTH];						// パラメータバッファ
 
+char pin_copy_tbl[24];	// pin copy table
 
 /////////////////////
 
