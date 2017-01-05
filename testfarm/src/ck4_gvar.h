@@ -82,3 +82,6 @@ extern char *com_data[];						// パラメータバッファ
 //////////////////////
 
 extern word tgDut;
+
+extern char pin_copy_tbl[];
+
