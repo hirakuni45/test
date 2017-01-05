@@ -360,6 +360,7 @@ namespace checkercom
                 asc = "";
                 BYTESTRtoHEX(DevListOrg[i].COM_NUM, ref asc);//コマンド数
                 Common.SendASCIIImage += asc;
+
                 //配線情報
                 asc = "";
                 MakePinInfo(i, DevListOrg[i].PIN_COUNT, ref asc);
@@ -390,6 +391,11 @@ namespace checkercom
                 if (DevListOrg[i].PHASE == "φ3") bt = 2;
                 if (DevListOrg[i].PHASE == "φ4") bt = 3;
                 BYTEtoHEX(bt, ref asc);
+                Common.SendASCIIImage += asc;
+
+                // 24 バイト分、配線コピー情報
+                asc = "";
+                create_pin_copy_data(ref asc);
                 Common.SendASCIIImage += asc;
 
                 //コマンド情報
@@ -516,9 +522,10 @@ namespace checkercom
                 BYTEtoHEX(tb2, ref temp);
                 res += temp;
             }
-
         }
 
+        
+        // 転送イメージ作成
         private void MakeComInfo(int devnum, int comnum, ref string res)
         {
             string temp;
@@ -833,6 +840,8 @@ namespace checkercom
                 DevListOrg[i].PHASE = "φ" + (b0+1).ToString(); index += 2;
 
                 DevListOrg[i].COMMENT = "";                 //COMMENT 
+
+
 
                 //コマンド情報
                 ReadComInfo(i, ref index);

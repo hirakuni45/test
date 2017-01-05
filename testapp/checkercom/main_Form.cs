@@ -2771,6 +2771,35 @@ namespace checkercom
             setupPinAssign_group();
         }
         ////////////////
+
+
+        // 配線コピー情報
+        private void create_pin_copy_data(ref string res)
+        {
+            for (int i = 0; i < PinAssignList.Length; ++i)
+            {
+                if (checkBox1.CheckState == CheckState.Checked)
+                {
+                    string s = PinAssignList[i].SelectedItem.ToString();
+                    if (s == "NC") res += "FF";
+                    else
+                    {
+                        int n = int.Parse(s);
+                        if (n >= 1 && n <= 24)
+                        {
+                            --n;
+                            BYTEtoHEX((byte)n, ref res);
+                        } else
+                        {
+                            res += "FF";
+                        }
+                    }
+                } else
+                {
+                    res += "FF";
+                }
+            }
+        }
     }
 
     class MySerialPort : System.IO.Ports.SerialPort
