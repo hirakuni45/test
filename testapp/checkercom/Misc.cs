@@ -395,7 +395,7 @@ namespace checkercom
 
                 // 24 バイト分、配線コピー情報
                 asc = "";
-                create_pin_copy_data(ref asc);
+                create_pin_copy_data(i, ref asc);
                 Common.SendASCIIImage += asc;
 
                 //コマンド情報
@@ -841,7 +841,16 @@ namespace checkercom
 
                 DevListOrg[i].COMMENT = "";                 //COMMENT 
 
-
+                // 配線コピー情報
+                bool ena = false;
+                for (int j = 0; j < 24; ++j)
+                {
+                    HEXtoBYTE(Common.RecvASCIIImage.Substring(index, 2), ref b0);
+                    DevListOrg[i].COPY_PIN[j] = b0;
+                    if (b0 < 24) ena = true; 
+                    index += 2;
+                }
+                DevListOrg[i].COPY_PIN_ENA = ena;
 
                 //コマンド情報
                 ReadComInfo(i, ref index);

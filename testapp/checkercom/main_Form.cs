@@ -1630,6 +1630,23 @@ namespace checkercom
             return pad;
         }
 
+        void CreatePinCopyValue()
+        {
+            for(int i = 0; i < 24; ++i)
+            {
+                int n = -1;
+                if (checkBox1.CheckState == CheckState.Checked && PinAssignList[i].Enabled)
+                {
+                    string s = PinAssignList[i].Items.ToString();
+                    if (s != "NC")
+                    {
+                        n = int.Parse(s);
+                        --n;
+                    }
+                }
+                DevListOrg[Common.SelectDev].COPY_PIN[i] = n;
+            }
+        }
 
         //タブ選択時 特殊処理
         private void tabControl1_Selecting(object sender, TabControlCancelEventArgs e)
@@ -1643,6 +1660,7 @@ namespace checkercom
                 }
                 UpdateDevList(0);
             }
+
             if (e.TabPageIndex == 2)    //配線定義
             {
                 PinListIndex = DevListOrg[Common.SelectDev].PIN_COUNT;
@@ -1660,6 +1678,7 @@ namespace checkercom
                 ComListIndex = DevListOrg[Common.SelectDev].COM_COUNT;
                 UpdateComList(0);
             }
+
             if (e.TabPageIndex == 4)    //コマンド定義
             {
                 tb_DATANum.Text = Common.DATANum;
@@ -1678,9 +1697,14 @@ namespace checkercom
                 }
                 pinAssignPad = pad;
             }
+
+            if (tabPageIndex == 7 && e.TabPageIndex != 7) // 配線コピー定義から出たら、コピー定義を反映する
+            {
+                CreatePinCopyValue();
+            }
             tabPageIndex = e.TabPageIndex;
 
-            if (e.TabPageIndex == 7)    //配線コピー定義
+            if (e.TabPageIndex == 7)    // 配線コピー定義
             {
                 setupPinAssign_group();  // Item のEnable/Disable を設定
             }
@@ -1975,7 +1999,7 @@ namespace checkercom
             cb_ComNameSel.Items.Clear();
             if (cb_SelDev.Items.Count > 0)
             {
-                Common.SelectDev = cb_SelDev.SelectedIndex;// Common.DEVICE_COUNT;
+                Common.SelectDev = cb_SelDev.SelectedIndex;  // Common.DEVICE_COUNT;
                 Common.SelectCom = 0;
                 DevListIndex = Common.DEVICE_COUNT;
                 PinListIndex = DevListOrg[Common.SelectDev].PIN_COUNT;
@@ -2051,6 +2075,7 @@ namespace checkercom
                     fs.Write(DevListOrg[i].PHASE + ",");
                     fs.Write(DevListOrg[i].COMMENT + CRLF);
                 }
+
                 //配線情報
                 fs.Write("#PinInformation#" + CRLF);
                 for (i = 0; i < Common.DEVICE_COUNT; i++)
@@ -2068,6 +2093,28 @@ namespace checkercom
                         fs.Write(PinList[i, j].PinF + CRLF);
                     }
                 }
+
+                // 配線コピー情報
+                fs.Write("#PinCopyInformation#" + CRLF);
+                for (i = 0; i < Common.DEVICE_COUNT; i++)
+                {
+                    if (DevListOrg[i].COPY_PIN_ENA) fs.Write("ENA");
+                    else fs.Write("DIS");
+                    for (j = 0; j < 24; ++j)
+                    {
+                        k = DevListOrg[i].COPY_PIN[j];
+                        if (k < 0 || k >= 24)
+                        {
+                            fs.Write(",NC");
+                        }
+                        else
+                        {
+                            fs.Write("," + k.ToString());
+                        }
+                    }
+                    fs.Write(CRLF);
+                }
+
                 //コマンド情報
                 fs.Write("#CommandInformation#" + CRLF);
                 for (i = 0; i < Common.DEVICE_COUNT; i++)
@@ -2111,22 +2158,7 @@ namespace checkercom
 
                     }
                 }
- 
-                // 配線コピー情報
-                fs.Write("#PinCopyInformation#" + CRLF);
-                if(checkBox1.CheckState == CheckState.Checked)
-                {
-                    fs.Write("ENA");
-                } 
-                else
-                {
-                    fs.Write("DIS");
-                }
-                for(i = 0; i < PinAssignList.Length; ++i)
-                {
-                    fs.Write("," + PinAssignList[i].SelectedItem.ToString());
-                }
-                fs.Write(CRLF);
+
                 //閉じる
                 fs.Close();
                 MessageBox.Show("ファイルを保存しました。", "ファイル保存", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2144,7 +2176,6 @@ namespace checkercom
             int errornum = 0;
             int[] comcnt = new int[64];
             int id = 0;
-            string[] pincopy = { "" };
 
             if (MessageBox.Show("指定ファイルのコマンド定義を読み込みます。", "内部データの初期化",
                 MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.OK)
@@ -2362,7 +2393,19 @@ namespace checkercom
                                     }
                                     break;
                                 case 6:  // ピンコピー情報
-                                    pincopy = column;
+                                    for (int i = 0; i < Common.DEVICE_COUNT; ++i) {
+                                        if (column.Length != 25) break;
+                                        if (column[0] == "ENA") DevListOrg[i].COPY_PIN_ENA = true;
+                                        else if (column[0] == "DIS") DevListOrg[i].COPY_PIN_ENA = false;
+                                        else break;
+                                        for(int j = 0; j < 24; ++j)
+                                        {
+                                            string s = column[j + 1];
+                                            if (s == "NC") DevListOrg[i].COPY_PIN[j] = -1;
+                                            else DevListOrg[i].COPY_PIN[j] = int.Parse(s);
+                                        }
+                                        column = parser.ReadFields();
+                                    }
                                     Common.ReadProc = 0;
                                     break;
                                 default:
@@ -2404,23 +2447,19 @@ namespace checkercom
 
                     // 配線コピーの状態を作成
                     setupPinAssign_gui();
+                    checkBox1.Checked = DevListOrg[Common.SelectDev].COPY_PIN_ENA;
                     pinAssignPad = CreatePinAssignPad();
-                    if (pincopy.Length == 25)
+                    for (int i = 0; i < (int)ConstGui.MAX_PIN_ITEMLIST; ++i)
                     {
-                        if(pincopy[0] == "ENA")
+                        int j = DevListOrg[Common.SelectDev].COPY_PIN[i];
+                        if (j < 0 || j >= 24)
                         {
-                            checkBox1.Checked = true;
-                        } else if(pincopy[0] == "DIS")
-                        {
-                            checkBox1.Checked = false;
+                            PinAssignList[i].SelectedItem = "NC";
                         }
-                        for(int i = 0; i < (int)ConstGui.MAX_PIN_ITEMLIST; ++i)
+                        else
                         {
-                            // s += "(" + PinAssignList[i].Items.Count.ToString() + ") ";
-                            PinAssignList[i].SelectedItem = pincopy[i + 1];
-                            // s += pincopy[i + 1] + ", ";
+                            PinAssignList[i].SelectedItem = (j + 1).ToString();
                         }
-                        // MessageBox.Show(s, "PinCopy", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     setupPinAssign_group();
 
@@ -2741,7 +2780,6 @@ namespace checkercom
                         break;
                     }
                 }
-
                 if (add)
                 {
                     for (int j = 0; j < PinListIndex; ++j)
@@ -2769,37 +2807,30 @@ namespace checkercom
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             setupPinAssign_group();
+            DevListOrg[Common.SelectDev].COPY_PIN_ENA = (checkBox1.CheckState == CheckState.Checked);
         }
-        ////////////////
-
 
         // 配線コピー情報
-        private void create_pin_copy_data(ref string res)
+        private void create_pin_copy_data(int idx, ref string res)
         {
-            for (int i = 0; i < PinAssignList.Length; ++i)
+            for (int i = 0; i < 24; ++i)
             {
-                if (checkBox1.CheckState == CheckState.Checked)
+                if(DevListOrg[idx].COPY_PIN_ENA)
                 {
-                    string s = PinAssignList[i].SelectedItem.ToString();
-                    if (s == "NC") res += "FF";
-                    else
-                    {
-                        int n = int.Parse(s);
-                        if (n >= 1 && n <= 24)
-                        {
-                            --n;
-                            BYTEtoHEX((byte)n, ref res);
-                        } else
-                        {
-                            res += "FF";
-                        }
-                    }
-                } else
+                    int n = DevListOrg[idx].COPY_PIN[i];
+                    if (n < 0 || n >= 24) res += "FF";
+                    else BYTEtoHEX((byte)n, ref res);
+                }
+                else
                 {
                     res += "FF";
                 }
             }
         }
+
+       private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+       {
+       }
     }
 
     class MySerialPort : System.IO.Ports.SerialPort

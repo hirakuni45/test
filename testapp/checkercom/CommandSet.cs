@@ -127,6 +127,7 @@ namespace checkercom
         }
 
     }
+
     class PinSet
     {
 
@@ -196,6 +197,7 @@ namespace checkercom
         }
 
     }
+
     public class Common
     {
         public static string m_SerialPort = "";         // シリアルポート
@@ -209,6 +211,7 @@ namespace checkercom
         public static string RecvASCIIImage;
         public static int []ArgMaxCHK=new int[16];
     }
+
     public class DeviceINF
     {
         public int PIN_COUNT;
@@ -223,6 +226,8 @@ namespace checkercom
         public string PHASE;
         public string COMMENT;
         public string OLD_NAME;     //temporary
+        public bool COPY_PIN_ENA;
+        public int[] COPY_PIN;
 
         public DeviceINF()
         {
@@ -236,6 +241,9 @@ namespace checkercom
             PHASE = "";
             COMMENT = "";
             OLD_NAME="";
+            COPY_PIN_ENA = false;
+            COPY_PIN = new int[24];
+            for (int i = 0; i < 24; ++i) COPY_PIN[i] = -1;
 //            PIN_INF = main_Form.PinList;
         }
 
@@ -250,10 +258,12 @@ namespace checkercom
             dev.PERIOD = this.PERIOD;
             dev.PHASE = this.PHASE;
             dev.COMMENT = this.COMMENT;
-
+            dev.COPY_PIN_ENA = this.COPY_PIN_ENA;
+            dev.COPY_PIN = this.COPY_PIN;
         }
 
     }
+
     public class CommandINF
     {
         public int COMMAND_COUNT;
