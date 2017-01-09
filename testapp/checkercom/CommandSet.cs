@@ -244,7 +244,7 @@ namespace checkercom
             COPY_PIN_ENA = false;
             COPY_PIN = new int[24];
             for (int i = 0; i < 24; ++i) COPY_PIN[i] = -1;
-//            PIN_INF = main_Form.PinList;
+            //            PIN_INF = main_Form.PinList;
         }
 
         public void CopyTo(DeviceINF dev)

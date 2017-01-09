@@ -42,7 +42,7 @@ namespace checkercom
         private SaveFileDialog sfd;             // 名前を付けて保存
         private MySerialPort MySerialPort;
         private int tabPageIndex = 0;
-        private uint pinAssignPad = 0;
+        private bool update_enable_ = false;
 
         public Common common;         // 共通クラス
         const string CRLF = "\r\n";
@@ -162,7 +162,6 @@ namespace checkercom
             PinAssignList[23] = comboBox24;
 
             tabPageIndex = 0;
-            pinAssignPad = 0;
         }
 
 
@@ -1618,36 +1617,6 @@ namespace checkercom
             Cursor.Current = Cursors.Default;
         }
 
-
-        uint CreatePinAssignPad()
-        {
-            uint pad = 0;
-            for (int i = 0; i < PinListIndex; ++i)
-            {
-                string nb = PinList[Common.SelectDev, i].PinNum;
-                pad |= (uint)(1 << (int.Parse(nb)));
-            }
-            return pad;
-        }
-
-        void CreatePinCopyValue()
-        {
-            for(int i = 0; i < 24; ++i)
-            {
-                int n = -1;
-                if (checkBox1.CheckState == CheckState.Checked && PinAssignList[i].Enabled)
-                {
-                    string s = PinAssignList[i].Items.ToString();
-                    if (s != "NC")
-                    {
-                        n = int.Parse(s);
-                        --n;
-                    }
-                }
-                DevListOrg[Common.SelectDev].COPY_PIN[i] = n;
-            }
-        }
-
         //タブ選択時 特殊処理
         private void tabControl1_Selecting(object sender, TabControlCancelEventArgs e)
         {
@@ -1690,24 +1659,14 @@ namespace checkercom
 
             if (tabPageIndex == 2 && e.TabPageIndex != 2) // 配線定義から出たら、ピンコピーのGUIを再構築する。
             {
-                uint pad = CreatePinAssignPad();
-                if (pinAssignPad != pad)  // 前の状態に変化が起きた場合構築をやり直す。
-                {
-                    setupPinAssign_gui();
-                }
-                pinAssignPad = pad;
+                UpdatePinCopy();
             }
 
-            if (tabPageIndex == 7 && e.TabPageIndex != 7) // 配線コピー定義から出たら、コピー定義を反映する
+            if (tabPageIndex != 7 && e.TabPageIndex == 7) // 配線コピー定義に入ったら、コピー定義ＧＵＩに反映
             {
-                CreatePinCopyValue();
+                UpdatePinCopy();
             }
             tabPageIndex = e.TabPageIndex;
-
-            if (e.TabPageIndex == 7)    // 配線コピー定義
-            {
-                setupPinAssign_group();  // Item のEnable/Disable を設定
-            }
         }
 
         private void lv_CommandList_SelectedIndexChanged(object sender, EventArgs e)
@@ -2019,10 +1978,10 @@ namespace checkercom
                 UpdatePinList(0);
                 UpdateComList(0);
                 UpdateCommandList(0);
+                UpdatePinCopy();
             }
             tb_DATANum.Text = Common.DATANum;
             tb_AUXNum.Text = Common.AUXNum;
-
         }
 
  
@@ -2393,20 +2352,25 @@ namespace checkercom
                                     }
                                     break;
                                 case 6:  // ピンコピー情報
-                                    for (int i = 0; i < Common.DEVICE_COUNT; ++i) {
+                                    Common.ReadProc = 0;
+                                    for (int i = 0; i < devmax; ++i) {
+                                        if (i != 0)
+                                        {
+                                            column = parser.ReadFields();
+                                        }
                                         if (column.Length != 25) break;
                                         if (column[0] == "ENA") DevListOrg[i].COPY_PIN_ENA = true;
                                         else if (column[0] == "DIS") DevListOrg[i].COPY_PIN_ENA = false;
                                         else break;
-                                        for(int j = 0; j < 24; ++j)
+
+                                        for (int j = 0; j < 24; ++j)
                                         {
                                             string s = column[j + 1];
                                             if (s == "NC") DevListOrg[i].COPY_PIN[j] = -1;
                                             else DevListOrg[i].COPY_PIN[j] = int.Parse(s);
                                         }
-                                        column = parser.ReadFields();
                                     }
-                                    Common.ReadProc = 0;
+                                    
                                     break;
                                 default:
                                     break;
@@ -2428,7 +2392,6 @@ namespace checkercom
                     tb_InfoKind.Text = Common.DEVICE_COUNT.ToString();
                     tb_InfoRest.Text = ((int)ConstGui.MAX_DEV_ITEMLIST - Common.DEVICE_COUNT).ToString();
 
-
                     UpdateDevList(0);
 
                     if (Common.DEVICE_COUNT != 0)
@@ -2444,24 +2407,7 @@ namespace checkercom
                     UpdatePinList(0);
                     UpdateComList(0);
                     UpdateCommandList(0);
-
-                    // 配線コピーの状態を作成
-                    setupPinAssign_gui();
-                    checkBox1.Checked = DevListOrg[Common.SelectDev].COPY_PIN_ENA;
-                    pinAssignPad = CreatePinAssignPad();
-                    for (int i = 0; i < (int)ConstGui.MAX_PIN_ITEMLIST; ++i)
-                    {
-                        int j = DevListOrg[Common.SelectDev].COPY_PIN[i];
-                        if (j < 0 || j >= 24)
-                        {
-                            PinAssignList[i].SelectedItem = "NC";
-                        }
-                        else
-                        {
-                            PinAssignList[i].SelectedItem = (j + 1).ToString();
-                        }
-                    }
-                    setupPinAssign_group();
+                    UpdatePinCopy();
 
                     MessageBox.Show("ファイルを読み込みました。", "読み込みの終了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -2793,6 +2739,59 @@ namespace checkercom
             }
         }
 
+        private void UpdatePinCopy()
+        {
+            update_enable_ = false;
+
+            setupPinAssign_gui();
+
+            // string s = "";
+            // s += DevListOrg[Common.SelectDev].COPY_PIN_ENA;
+
+            for (int i = 0; i < 24; ++i)
+            {
+                int n = DevListOrg[Common.SelectDev].COPY_PIN[i];
+                if (n < 0 || n >= 24)
+                {
+                    PinAssignList[i].SelectedItem = "NC";
+                }
+                else
+                {
+                    PinAssignList[i].SelectedItem = (n + 1).ToString();
+                }
+                // s += n + ", ";
+            }
+            
+            checkBox1.Checked = DevListOrg[Common.SelectDev].COPY_PIN_ENA;
+
+            setupPinAssign_group();
+
+            update_enable_ = true;
+
+            // MessageBox.Show(s, "状態", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        void UpdatePinCopyPad()
+        {
+            if(!update_enable_) return;
+
+            for (int i = 0; i < 24; ++i)
+            {
+                int n = -1;
+                if (checkBox1.CheckState == CheckState.Checked && PinAssignList[i].Enabled)
+                {
+                    string s = PinAssignList[i].SelectedItem.ToString();
+                    if (s != "NC")
+                    {
+                        n = int.Parse(s);
+                        --n;
+                    }
+                }
+                DevListOrg[Common.SelectDev].COPY_PIN[i] = n;
+            }
+            DevListOrg[Common.SelectDev].COPY_PIN_ENA = checkBox1.CheckState == CheckState.Checked;
+        }
+
         private void setupPinAssign_group()
         {
             for (int i = 0; i < (int)ConstGui.MAX_PIN_ITEMLIST; ++i)
@@ -2807,7 +2806,7 @@ namespace checkercom
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             setupPinAssign_group();
-            DevListOrg[Common.SelectDev].COPY_PIN_ENA = (checkBox1.CheckState == CheckState.Checked);
+            UpdatePinCopyPad();
         }
 
         // 配線コピー情報
@@ -2830,7 +2829,123 @@ namespace checkercom
 
        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
        {
+            UpdatePinCopyPad();
        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox4_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox5_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox6_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox7_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox8_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox9_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox10_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox11_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox12_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox13_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox14_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox15_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox16_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox17_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox18_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox19_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox20_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox21_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox22_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox23_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
+
+        private void comboBox24_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdatePinCopyPad();
+        }
     }
 
     class MySerialPort : System.IO.Ports.SerialPort
