@@ -159,6 +159,7 @@ byte exec_command(char *com)
 		//usart_put(string );
 		com_data[idx] = string;
 		idx++;
+		if(idx >= BUFMAX_LENGTH) break;
 	}
 
 	busy_flg=1;
@@ -791,6 +792,7 @@ void fpga_writemem() {
 		else if((outdat[i].dt & 0x40000000) != 0){ //DELAY
 			mask = 0x1000000;
 			data = outdat[i].dt & 0xffffff;
+			data = copy_bits(data);
 		}
 		fpga_setdata(data, mask);
 
