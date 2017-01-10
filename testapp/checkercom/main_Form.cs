@@ -2209,8 +2209,13 @@ namespace checkercom
                                     DevListOrg[devcnt].AUX_INIT = column[3];
                                     DevListOrg[devcnt].PERIOD = column[4];
                                     DevListOrg[devcnt].PHASE = column[5];
+                                    DevListOrg[devcnt].COPY_PIN_ENA = false;
+                                    for (int i = 0; i < 24; ++i)
+                                    {
+                                        DevListOrg[i].COPY_PIN[i] = -1;
+                                    }
                                     if (column.Length > 6)
-                                        DevListOrg[devcnt].COMMENT = column[6];
+                                    DevListOrg[devcnt].COMMENT = column[6];
                                     else DevListOrg[devcnt].COMMENT = null;
                                     devcnt++;
                                     if (devcnt == devmax)
@@ -2351,7 +2356,7 @@ namespace checkercom
                                         Common.ReadProc = 0;
                                     }
                                     break;
-                                case 6:  // ピンコピー情報
+                                case 6:  // コピー定義情報
                                     Common.ReadProc = 0;
                                     for (int i = 0; i < devmax; ++i) {
                                         if (i != 0)
