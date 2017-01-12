@@ -12,7 +12,7 @@
 // Dependencies: 
 //
 // Revision: 		0.0.0.0 - Initial
-//                  0.0.0.1 - •iíØ‚è‘Ö‚¦‚Ì‰Šú’l‘—o ’Ç‰Á
+//                  0.0.0.1 - å“ç¨®åˆ‡ã‚Šæ›¿ãˆæ™‚ã®åˆæœŸå€¤é€å‡º è¿½åŠ 
 // Additional Comments: 
 //
 //
@@ -30,71 +30,71 @@
 // Set Configuration Bit
 #include "Config_24E.h"
 
-/* Ã“I•Ï”éŒ¾ */
+/* é™çš„å¤‰æ•°å®£è¨€ */
 byte CmdFlag = 0;
-byte Key_Access;		//!< @brief ƒL[ó•t‹–‰Â/‹Ö~ƒtƒ‰ƒO
+byte Key_Access;		//!< @brief ã‚­ãƒ¼å—ä»˜è¨±å¯/ç¦æ­¢ãƒ•ãƒ©ã‚°
 
 	int stat_1;
 /**
- *	@brief ƒVƒŠƒAƒ‹”Ô†
+ *	@brief ã‚·ãƒªã‚¢ãƒ«ç•ªå·
  */
 
 
 /**
- *	@brief ƒtƒ@[ƒ€ƒo[ƒWƒ‡ƒ“
+ *	@brief ãƒ•ã‚¡ãƒ¼ãƒ ãƒãƒ¼ã‚¸ãƒ§ãƒ³
  */
 const char SOURCE_VERSION[] = Firm_Version;
 
 
 
 /** @brief
- *	ƒXƒe[ƒgƒ}ƒVƒ“
+ *	ã‚¹ãƒ†ãƒ¼ãƒˆãƒã‚·ãƒ³
  */
 enum _status {
-	STAT_PWUP = 0,			//!< ‹N“®‘Oˆ—
-	STAT_WAIT,				//!< FPGA‹N“®‘Ò‹@
-	STAT_IDLE,				//!< ƒAƒCƒhƒ‹ó‘Ô
-	STAT_MARK_1,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MARK_2,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MARK_3,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MODE_1,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MODE_2,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MODE_3,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MODE_4,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MODE_5,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MODE_6,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_MODE_7,				//!< ƒXƒCƒbƒ`“ü—Íó‘Ô
-	STAT_FPGA,				//!< FPGA‚Öƒf[ƒ^“]‘—ó‘Ô
-	STAT_DEBUG,				//!< DEBUG—p
-	STAT_TRACK,				//!< ƒgƒ‰ƒbƒLƒ“ƒOÀs
-	STAT_WAIT_SW_RELEASE,		//!< ƒXƒCƒbƒ`ƒŠƒŠ[ƒX‘Ò‚¿
-	STAT_WAIT_SW_RELEASE_2,	//!< ƒXƒCƒbƒ`ƒŠƒŠ[ƒX‘Ò‚¿_2
-	STAT_WAIT_TIME,			//!< ©“®ƒ|ƒWƒVƒ‡ƒjƒ“ƒO‚Ì•\¦‘Ò‹@
-	STAT_FINISH,				//!< I—¹ˆ—
+	STAT_PWUP = 0,			//!< èµ·å‹•å‰å‡¦ç†
+	STAT_WAIT,				//!< FPGAèµ·å‹•å¾…æ©Ÿ
+	STAT_IDLE,				//!< ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹
+	STAT_MARK_1,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MARK_2,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MARK_3,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MODE_1,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MODE_2,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MODE_3,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MODE_4,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MODE_5,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MODE_6,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_MODE_7,				//!< ã‚¹ã‚¤ãƒƒãƒå…¥åŠ›çŠ¶æ…‹
+	STAT_FPGA,				//!< FPGAã¸ãƒ‡ãƒ¼ã‚¿è»¢é€çŠ¶æ…‹
+	STAT_DEBUG,				//!< DEBUGç”¨
+	STAT_TRACK,				//!< ãƒˆãƒ©ãƒƒã‚­ãƒ³ã‚°å®Ÿè¡Œ
+	STAT_WAIT_SW_RELEASE,		//!< ã‚¹ã‚¤ãƒƒãƒãƒªãƒªãƒ¼ã‚¹å¾…ã¡
+	STAT_WAIT_SW_RELEASE_2,	//!< ã‚¹ã‚¤ãƒƒãƒãƒªãƒªãƒ¼ã‚¹å¾…ã¡_2
+	STAT_WAIT_TIME,			//!< è‡ªå‹•ãƒã‚¸ã‚·ãƒ§ãƒ‹ãƒ³ã‚°ã®è¡¨ç¤ºå¾…æ©Ÿ
+	STAT_FINISH,				//!< çµ‚äº†å‡¦ç†
 };
 enum _CommandFlag {
-	CMD_NON = 0,		//!< ‘JˆÚ‚È‚µ
-	CMD_WRITE,		//!< İ’èƒRƒ}ƒ“ƒh
-	CMD_READ,			//!< “Ç‚İo‚µƒRƒ}ƒ“ƒh
-	CMD_TRK_STA,		//!< ƒgƒ‰ƒbƒLƒ“ƒOƒRƒ}ƒ“ƒh
-	CMD_TRK_STP,		//!< ƒgƒ‰ƒbƒLƒ“ƒOƒRƒ}ƒ“ƒh
+	CMD_NON = 0,		//!< é·ç§»ãªã—
+	CMD_WRITE,		//!< è¨­å®šã‚³ãƒãƒ³ãƒ‰
+	CMD_READ,			//!< èª­ã¿å‡ºã—ã‚³ãƒãƒ³ãƒ‰
+	CMD_TRK_STA,		//!< ãƒˆãƒ©ãƒƒã‚­ãƒ³ã‚°ã‚³ãƒãƒ³ãƒ‰
+	CMD_TRK_STP,		//!< ãƒˆãƒ©ãƒƒã‚­ãƒ³ã‚°ã‚³ãƒãƒ³ãƒ‰
 };
 
 /** @brief
- *	ƒTƒuƒXƒe[ƒgƒ}ƒVƒ“
+ *	ã‚µãƒ–ã‚¹ãƒ†ãƒ¼ãƒˆãƒã‚·ãƒ³
  */
 
 /** @brief
- *	FPGAƒRƒ}ƒ“ƒh
+ *	FPGAã‚³ãƒãƒ³ãƒ‰
  */
 
 // Parameter -----------------------------------------------------------
 
-// ‹[—I2CóM—p
+// æ“¬ä¼¼I2Cå—ä¿¡ç”¨
 	byte dbg_i2c = FALSE;
 	byte i2c_1st = 0;
 	byte i2c_2nd = 0;
-// ‹[—I2CóM—p
+// æ“¬ä¼¼I2Cå—ä¿¡ç”¨
 
 
 
@@ -102,7 +102,7 @@ byte dbg_flg = FALSE;		// for Debug
 
 
 
-// ƒvƒƒgƒ^ƒCƒvéŒ¾
+// ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
 int main(void);
 void loop(void);
 void init(void);
@@ -115,18 +115,18 @@ void var_init(void);
 
 
 
-// ƒOƒ[ƒoƒ‹•Ï”éŒ¾
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°å®£è¨€
 
 /*********************************
- * ‰Šú‰»ŠÖ”
+ * åˆæœŸåŒ–é–¢æ•°
  *********************************/
 void init(void)
 {
-	gpio_init();		// GPIO‰Šú‰»
-	var_init();		// Š„‚è‚İ‘O•Ï”‰Šú‰»
-	uart_init();		// uart‰Šú‰»
-	timer_init();		// ƒ^ƒCƒ}[‰Šú‰»
-	i2c_init();		// I2C‰Šú‰»(Master Mode)
+	gpio_init();		// GPIOåˆæœŸåŒ–
+	var_init();		// å‰²ã‚Šè¾¼ã¿å‰å¤‰æ•°åˆæœŸåŒ–
+	uart_init();		// uartåˆæœŸåŒ–
+	timer_init();		// ã‚¿ã‚¤ãƒãƒ¼åˆæœŸåŒ–
+	i2c_init();		// I2CåˆæœŸåŒ–(Master Mode)
 
 	int i;
 	for(i = 0; i < 24; ++i) {
@@ -152,7 +152,7 @@ void var_init(void){
 }
 
 /*********************************
- * ƒƒCƒ“ŠÖ”
+ * ãƒ¡ã‚¤ãƒ³é–¢æ•°
  *********************************/
 int main(void)
 {
@@ -166,7 +166,7 @@ int main(void)
 	CLKDIVbits.PLLPRE = 0;		// N1= 2
 	CLKDIVbits.PLLPOST = 0;	// N2= 2
 
-	OSCTUNbits.TUN = 23;				// FRC‚Ìü”g”’²®(–ñ8MHz)
+	OSCTUNbits.TUN = 23;				// FRCã®å‘¨æ³¢æ•°èª¿æ•´(ç´„8MHz)
 
 	while(OSCCONbits.LOCK != 1) {};		// Wait for PLL to lock
 
@@ -181,16 +181,16 @@ int main(void)
 	IEC7 = 0x0000;
 	IEC8 = 0x0000;
 
-	_NSTDIS = 1;	// Š„‚è‚İ‚ÌƒlƒXƒeƒBƒ“ƒO(0:‹–‰ÂC1:‹Ö~)
+	_NSTDIS = 1;	// å‰²ã‚Šè¾¼ã¿ã®ãƒã‚¹ãƒ†ã‚£ãƒ³ã‚°(0:è¨±å¯ï¼Œ1:ç¦æ­¢)
 
-	init();		// Šeí‰Šú‰»
-
-
-//	I2C1ADD = 0x0;				// ŠO•”‚©‚çİ’è‚³‚ê‚½I2CƒXƒŒ[ƒuƒAƒhƒŒƒX(‚Æ‚è‚ ‚¦‚¸‚O)
+	init();		// å„ç¨®åˆæœŸåŒ–
 
 
-	// ƒ}ƒCƒRƒ“‹N“®Œã‚Ì‘Ò‹@
-	__delay_ms(2500);				// 2.5s waitiFPGA‹N“®‘Ò‹@j
+//	I2C1ADD = 0x0;				// å¤–éƒ¨ã‹ã‚‰è¨­å®šã•ã‚ŒãŸI2Cã‚¹ãƒ¬ãƒ¼ãƒ–ã‚¢ãƒ‰ãƒ¬ã‚¹(ã¨ã‚Šã‚ãˆãšï¼)
+
+
+	// ãƒã‚¤ã‚³ãƒ³èµ·å‹•å¾Œã®å¾…æ©Ÿ
+	__delay_ms(2500);				// 2.5s waitï¼ˆFPGAèµ·å‹•å¾…æ©Ÿï¼‰
 
 	fpga_init();
 	
@@ -210,7 +210,7 @@ int main(void)
 	b[3]=read_eeprom(EEP_USED+3);
 
 	if((b[3]==0xff)&&(b[2]==0xff)&&(b[1]==0xff)&&(b[0]==0xff)){
-		//eeprom –³‚µ
+		//eeprom ç„¡ã—
 		eepsize=0;
 		eeprom_used=0;
 	}
@@ -233,18 +233,18 @@ int main(void)
 	else serial_pin[3]=(int)b[3];
 
 
-	loop();	// ƒGƒ“ƒhƒŒƒXƒ‹[ƒv
+	loop();	// ã‚¨ãƒ³ãƒ‰ãƒ¬ã‚¹ãƒ«ãƒ¼ãƒ—
 
 	return 0;
 }
 
 //*********************************
-//* ƒ‹[ƒvŠÖ”
+//* ãƒ«ãƒ¼ãƒ—é–¢æ•°
 //*********************************
 void loop(void)
 {
 
-	// ƒXƒe[ƒgƒ}ƒVƒ“
+	// ã‚¹ãƒ†ãƒ¼ãƒˆãƒã‚·ãƒ³
 	while(1){
 		usart_command_handler();
 		__delay_ms(5);
@@ -252,27 +252,27 @@ void loop(void)
 
 		//DBG_1 ^= 1;
 
-		// ƒEƒHƒbƒ`ƒhƒbƒOƒ^ƒCƒ}‚ğƒNƒŠƒA
+		// ã‚¦ã‚©ãƒƒãƒãƒ‰ãƒƒã‚°ã‚¿ã‚¤ãƒã‚’ã‚¯ãƒªã‚¢
 //		ClrWdt();
 
 
-		// ƒXƒe[ƒgƒ}ƒVƒ“ –¢g—p
+		// ã‚¹ãƒ†ãƒ¼ãƒˆãƒã‚·ãƒ³ æœªä½¿ç”¨
 		switch(stat_1){
 
 			//*****************
-			// ‹N“®ˆ—
+			// èµ·å‹•å‡¦ç†
 			//*****************
 			case STAT_PWUP:
 				break;
 
 			//*****************
-			// ‘Ò‹@
+			// å¾…æ©Ÿ
 			//*****************
 			case STAT_WAIT:
 				break;
 
 			//*****************
-			// ƒAƒCƒhƒ‹ó‘Ô
+			// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹
 			//*****************
 			case STAT_IDLE:
 				break;
@@ -280,10 +280,10 @@ void loop(void)
 
 
 			//*****************
-			// ‚»‚Ì‘¼‚ÌƒXƒe[ƒg
+			// ãã®ä»–ã®ã‚¹ãƒ†ãƒ¼ãƒˆ
 			//*****************
 			default:
-				stat_1 = STAT_IDLE;		// ƒAƒCƒhƒ‹‚Ö‘JˆÚ
+				stat_1 = STAT_IDLE;		// ã‚¢ã‚¤ãƒ‰ãƒ«ã¸é·ç§»
 				break;
 
 		}// end switch

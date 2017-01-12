@@ -36,8 +36,8 @@ typedef union{
 	unsigned long dl;
 }data_str;
 
-extern int outdat_cnt;				//40bitƒf[ƒ^‚Ì”
-extern data_str outdat[];		//40bitƒf[ƒ^
+extern int outdat_cnt;				//40bitãƒ‡ãƒ¼ã‚¿ã®æ•°
+extern data_str outdat[];		//40bitãƒ‡ãƒ¼ã‚¿
 
 extern byte command_num;
 extern byte aux_init;
@@ -53,10 +53,10 @@ extern byte command_name[16][5];
 extern byte command_ramexist[];
 extern unsigned long command_eeprom[];
 
-extern byte data_width;		//DATAü•
+extern byte data_width;		//DATAç·šå¹…
 extern unsigned data_mask;
 
-extern unsigned long out_init;//o—Í‰Šú’l 24bit
+extern unsigned long out_init;//å‡ºåŠ›åˆæœŸå€¤ 24bit
 
 extern byte usepin[];
 
@@ -77,7 +77,7 @@ extern byte define_reading;
 
 extern int serial_pin[];
 
-extern char *com_data[];						// ƒpƒ‰ƒ[ƒ^ƒoƒbƒtƒ@
+extern char *com_data[];						// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒãƒƒãƒ•ã‚¡
 
 //////////////////////
 

@@ -40,8 +40,8 @@ typedef union{
 	unsigned long dl;
 } data_str;
 
-int outdat_cnt;				// 40bitƒf[ƒ^‚Ì”
-data_str outdat[FPGA_MEMORY];		// 40bitƒf[ƒ^
+int outdat_cnt;				// 40bitãƒ‡ãƒ¼ã‚¿ã®æ•°
+data_str outdat[FPGA_MEMORY];		// 40bitãƒ‡ãƒ¼ã‚¿
 //unsigned long outdat24[2048];
 
 byte command_num;
@@ -49,22 +49,22 @@ byte aux_init;
 byte period_init[4];
 byte phase_init;
 
-byte pintofpga[40];			//40bit¨24bit
+byte pintofpga[40];			//40bitâ†’24bit
 
-byte pin_info[24][2];		//EEPROM pinî•ñ
+byte pin_info[24][2];		//EEPROM pinæƒ…å ±
 
 
-byte data_width;		//DATAü•
+byte data_width;		//DATAç·šå¹…
 unsigned long  data_mask;
 
-unsigned long out_init;		//o—Í‰Šú’l 24bit
+unsigned long out_init;		//å‡ºåŠ›åˆæœŸå€¤ 24bit
 
-byte usepin[40];			//g‚Á‚Ä‚¢‚é‚©A
+byte usepin[40];			//ä½¿ã£ã¦ã„ã‚‹ã‹ã€
 
-byte command_name[16][5];	//ƒRƒ}ƒ“ƒh–¼
+byte command_name[16][5];	//ã‚³ãƒãƒ³ãƒ‰å
 
-byte command_ramexist[16];	//‘S•”‚Á‚Ä‚±‚ê‚½‚©
-byte command_define[DEFINE_MAX];//‚à‚Á‚Ä—ˆ‚ê‚½
+byte command_ramexist[16];	//å…¨éƒ¨æŒã£ã¦ã“ã‚ŒãŸã‹
+byte command_define[DEFINE_MAX];//ã‚‚ã£ã¦æ¥ã‚ŒãŸ
 unsigned int command_mem[16];
 unsigned long command_eeprom[16];
 
@@ -90,7 +90,7 @@ byte define_reading;
 
 int serial_pin[4];
 
-char *com_data[BUFMAX_LENGTH];						// ƒpƒ‰ƒ[ƒ^ƒoƒbƒtƒ@
+char *com_data[BUFMAX_LENGTH];						// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒãƒƒãƒ•ã‚¡
 
 char pin_copy_tbl[24];	// pin copy table
 

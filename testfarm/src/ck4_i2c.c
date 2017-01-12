@@ -29,7 +29,7 @@ void PinAnalyze();
 unsigned int jDone;
 
 /******************
- * I2C‰Šú‰»ŠÖ”
+ * I2CåˆæœŸåŒ–é–¢æ•°
  ******************/
 void i2c_init(void)
 {
@@ -82,7 +82,7 @@ void i2c_init(void)
 
 //------------------------------------------------------------------------------------------------------------
 /******************
- * EEPROM‚Ö‚Ì‘‚«‚İ
+ * EEPROMã¸ã®æ›¸ãè¾¼ã¿
  ******************/
 void write_eeprom(unsigned long eAddress, byte eData)
 {
@@ -99,38 +99,38 @@ void write_eeprom(unsigned long eAddress, byte eData)
 		Nop();
 		I2C2CONbits.I2CEN = 1;		// I2C1 Active
 
-		IdleI2C2();				// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+		IdleI2C2();				// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 		StartI2C2();				// generate start condition
-		IdleI2C2();				// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+		IdleI2C2();				// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 		// slave adress & RW = 0
 		sAddr = IIC_EEPROM_SLAVE_ADDR | IIC_DATA_WRITE|A16;
 
 	}while(MasterWriteI2C2(sAddr)<0);
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 
-	// EEPROMƒAƒhƒŒƒX‚Ì‘—M
+	// EEPROMã‚¢ãƒ‰ãƒ¬ã‚¹ã®é€ä¿¡
 	MasterWriteI2C2(((eAddress)>>8)&0xff);
 	MasterWriteI2C2(eAddress&0xff);
 
 
-	// ƒf[ƒ^‚Ì‘‚«‚İ
+	// ãƒ‡ãƒ¼ã‚¿ã®æ›¸ãè¾¼ã¿
 	MasterWriteI2C2(eData);
 
 
 	// stop condition
 	StopI2C2();
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 }
 
 
 /******************
- * EEPROM‚©‚ç‚Ì“Ç‚İo‚µ
+ * EEPROMã‹ã‚‰ã®èª­ã¿å‡ºã—
  ******************/
 byte read_eeprom(unsigned long eAddress)
 {
@@ -139,12 +139,12 @@ byte read_eeprom(unsigned long eAddress)
 	char ret;
 	byte A16;
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 	// generate start condition
 	StartI2C2();
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 	if((eAddress & 0x10000)!=0) A16=2;
 	else A16=0;
@@ -155,44 +155,44 @@ byte read_eeprom(unsigned long eAddress)
 
 
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
-	// EEPROMƒAƒhƒŒƒX‚Ì‘—M
+	// EEPROMã‚¢ãƒ‰ãƒ¬ã‚¹ã®é€ä¿¡
 	ret = MasterWriteI2C2((eAddress>>8)&0xff);
 	ret = MasterWriteI2C2(eAddress&0xff);
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 	// restart condition
 	RestartI2C2();
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 	// slave adress & RW = 1
 	sAddr = IIC_EEPROM_SLAVE_ADDR | IIC_DATA_READ|A16;
 	MasterWriteI2C2(sAddr);
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
-	eData = MasterReadI2C2();	// EEPROM‚Ìƒf[ƒ^‚ğ“Ç‚İo‚µ
+	eData = MasterReadI2C2();	// EEPROMã®ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿å‡ºã—
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
-	NotAckI2C2();			//’ÊMI—¹‚ÌNack‚ğ‘—M
+	NotAckI2C2();			//é€šä¿¡çµ‚äº†ã®Nackã‚’é€ä¿¡
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 	// stop condition
 	StopI2C2();
 
-	IdleI2C2();	// ƒAƒCƒhƒ‹ó‘Ô‚Ü‚Å‘Ò‹@
+	IdleI2C2();	// ã‚¢ã‚¤ãƒ‰ãƒ«çŠ¶æ…‹ã¾ã§å¾…æ©Ÿ
 
 	return eData;
 }
 //------------------------------------------------------------------------------------------------------------
 
 /******************
- * MASTERŠ„‚è‚İ
+ * MASTERå‰²ã‚Šè¾¼ã¿
  ******************/
 void __attribute__((interrupt, no_auto_psv)) _MI2C1Interrupt(void)
 {
@@ -201,31 +201,31 @@ void __attribute__((interrupt, no_auto_psv)) _MI2C1Interrupt(void)
 }
 
 /******************
- * SLAVEŠ„‚è‚İ
+ * SLAVEå‰²ã‚Šè¾¼ã¿
  ******************/
 void __attribute__((interrupt, no_auto_psv)) _SI2C1Interrupt(void)
 {
 	byte temp;
 
-	//Š„‚è‚İƒtƒ‰ƒOƒNƒŠƒA
+	//å‰²ã‚Šè¾¼ã¿ãƒ•ãƒ©ã‚°ã‚¯ãƒªã‚¢
 	_SI2C2IF = 0;
 
-	// ƒAƒhƒŒƒXóM
+	// ã‚¢ãƒ‰ãƒ¬ã‚¹å—ä¿¡
 	if(_R_W==0 && _D_A==0){
 
-		temp = SlaveReadI2C2();	// ƒ_ƒ~[ƒŠ[ƒh
+		temp = SlaveReadI2C2();	// ãƒ€ãƒŸãƒ¼ãƒªãƒ¼ãƒ‰
 		IdleI2C2();
 
-		_SCLREL = 1;	// ƒNƒƒbƒN“®ì‚ğÄŠJ
+		_SCLREL = 1;	// ã‚¯ãƒ­ãƒƒã‚¯å‹•ä½œã‚’å†é–‹
 
-	// ƒf[ƒ^óM
+	// ãƒ‡ãƒ¼ã‚¿å—ä¿¡
 	}else if(_R_W==0 && _D_A==1){
 
 //		i2c_buff = SlaveReadI2C2();
 
-		_SCLREL = 1;	// ƒNƒƒbƒN“®ì‚ğÄŠJ
+		_SCLREL = 1;	// ã‚¯ãƒ­ãƒƒã‚¯å‹•ä½œã‚’å†é–‹
 
-	// ƒf[ƒ^‘—M—v‹
+	// ãƒ‡ãƒ¼ã‚¿é€ä¿¡è¦æ±‚
 	}else if(_R_W==1 && _D_A==0){
 
 		IdleI2C2();
@@ -236,7 +236,7 @@ void __attribute__((interrupt, no_auto_psv)) _SI2C1Interrupt(void)
 
 }
 
-//eeprom‚©‚çƒfƒoƒCƒXî•ñ“Ç‚İo‚µ
+//eepromã‹ã‚‰ãƒ‡ãƒã‚¤ã‚¹æƒ…å ±èª­ã¿å‡ºã—
 //input:device_no
 
 int get_device_info(void){
@@ -258,7 +258,7 @@ int get_device_info(void){
 
 	byte cmsize[11]={2,5,3,5,7,7,3,5,5,5,0};
 
-	define_reading=1;			//“Ç‚İ‚İ’†
+	define_reading=1;			//èª­ã¿è¾¼ã¿ä¸­
 
 	for (i=0;i<16;i++){
 		ID_name[i]=read_eeprom(i);
@@ -297,9 +297,9 @@ int get_device_info(void){
 		device_name[16]=NULL;	
 
 		eepadr+=16;
-		hn=read_eeprom(eepadr);	eepadr++;		//•ií”Ô†
+		hn=read_eeprom(eepadr);	eepadr++;		//å“ç¨®ç•ªå·
 
-		if (hn==device_no){		//ƒf[ƒ^ì¬
+		if (hn==device_no){		//ãƒ‡ãƒ¼ã‚¿ä½œæˆ
 			cn=read_eeprom(eepadr);
 			if(cn>16){
 				mem_lost=1;
@@ -355,7 +355,7 @@ int get_device_info(void){
 					else {
 						cnt=cmsize[cm];
 					}
-//					if ((long)((long)eepadr-(long)stadr-(long)cnt)<0){	//“Ç‚İ‚«‚ê‚È‚¢
+//					if ((long)((long)eepadr-(long)stadr-(long)cnt)<0){	//èª­ã¿ãã‚Œãªã„
 					if(memadr+cnt>DEFINE_MAX){
 						buf=1;
 					}
@@ -376,7 +376,7 @@ int get_device_info(void){
 
 			get=1;goto loopout;
 		}
-		else{					//“Ç‚İ”ò‚Î‚µ
+		else{					//èª­ã¿é£›ã°ã—
 			cn=read_eeprom(eepadr);
 			if(cn>16){
 				mem_lost=1;
@@ -406,20 +406,20 @@ int get_device_info(void){
 		define_reading=0;
 		return 2;
 	}
-	if (get==0){				//–³‚¢
+	if (get==0){				//ç„¡ã„
 		init_device_info();
 		define_reading=0;
 		return 1;
 	}
 loopout:
-	//FPGA İ’è
+	//FPGA è¨­å®š
 	fpga_TWE(pintofpga[0]);
 	period_i=(unsigned int)period_init[0]+((unsigned int)period_init[1]<<8);
 	clk_period=period_i;
 	clk_phase=(unsigned int)phase_init;
 	fpga_Control(period_i,(int)phase_init);
 
-	fpga_setadrs(0);				//•iíŒˆ’è ‰Šú’l‘—o
+	fpga_setadrs(0);				//å“ç¨®æ±ºå®šæ™‚ åˆæœŸå€¤é€å‡º
 	fpga_setdata(out_init,0);	
 
 	define_reading=0;
@@ -436,8 +436,8 @@ void init_device_info(void){
 		command_name[i][0]=NULL;
 	}
 
-	//•ií–³‚¢ê‡‚Ì‰Šú’l‘—o
-	fpga_TWE(30);		//ƒNƒƒbƒN–³‚µ(24ˆÈã)
+	//å“ç¨®ç„¡ã„å ´åˆã®åˆæœŸå€¤é€å‡º
+	fpga_TWE(30);		//ã‚¯ãƒ­ãƒƒã‚¯ç„¡ã—(24ä»¥ä¸Š)
 	fpga_setadrs(0);
 	fpga_setdata(0,0);	
 

@@ -124,77 +124,77 @@ typedef union _POINTER
 typedef enum _BOOL { FALSE = 0, TRUE } BOOL;
 
 
-// ”z—ñƒ|ƒCƒ“ƒ^‚`
+// é…åˆ—ãƒã‚¤ãƒ³ã‚¿ï¼¡
 typedef struct _POINT08A {
-	int sta;		// ƒXƒ^[ƒgƒ|ƒCƒ“ƒ^
-	int cnt;		// —v‘f”
+	int sta;		// ã‚¹ã‚¿ãƒ¼ãƒˆãƒã‚¤ãƒ³ã‚¿
+	int cnt;		// è¦ç´ æ•°
 }POINT08A;
 
-// ”z—ñƒ|ƒCƒ“ƒ^‚a
+// é…åˆ—ãƒã‚¤ãƒ³ã‚¿ï¼¢
 typedef struct _POINT08B {
-	int sta;		// ƒXƒ^[ƒgƒ|ƒCƒ“ƒ^
-	int cnt;		// —v‘f”
-	byte sum;		// ÏZ—v‘f”
-	byte n;		// }‚Å‚Ìˆê’v‰ñ”
+	int sta;		// ã‚¹ã‚¿ãƒ¼ãƒˆãƒã‚¤ãƒ³ã‚¿
+	int cnt;		// è¦ç´ æ•°
+	byte sum;		// ç©ç®—è¦ç´ æ•°
+	byte n;		// Â±ã§ã®ä¸€è‡´å›æ•°
 }POINT08B;
 
-// À•Wƒf[ƒ^
+// åº§æ¨™ãƒ‡ãƒ¼ã‚¿
 typedef struct _POINT {
-	int x;		// ‚wÀ•W
-	int y;		// ‚xÀ•W
+	int x;		// ï¼¸åº§æ¨™
+	int y;		// ï¼¹åº§æ¨™
 }POINT;
 
-// Œ‹‰ÊˆÚ“®—Ê
+// çµæœç§»å‹•é‡
 typedef struct _POINT2 {
-	int n;		// oŒ»•p“x or —v‘f”
-	int x;		// ‚wÀ•W
-	int y;		// ‚xÀ•W
+	int n;		// å‡ºç¾é »åº¦ or è¦ç´ æ•°
+	int x;		// ï¼¸åº§æ¨™
+	int y;		// ï¼¹åº§æ¨™
 }POINT2;
 
-// ü•ª
+// ç·šåˆ†
 typedef struct _OPTICAL {
-	byte a;		// Œ³‚ÌÀ•WA
-	byte b;		// Œ³‚ÌÀ•WB
-	int x;		// ü•ª‚Ì‚w¬•ª
-	int y;		// ü•ª‚Ì‚x¬•ª
-	char d;		// ˆê’v”»’è‚ÌŒë·(Šm’è)
+	byte a;		// å…ƒã®åº§æ¨™A
+	byte b;		// å…ƒã®åº§æ¨™B
+	int x;		// ç·šåˆ†ã®ï¼¸æˆåˆ†
+	int y;		// ç·šåˆ†ã®ï¼¹æˆåˆ†
+	char d;		// ä¸€è‡´åˆ¤å®šæ™‚ã®èª¤å·®(ç¢ºå®š)
 }OPTICAL;
 
-// ˆÚ“®—Ê
+// ç§»å‹•é‡
 typedef struct _DIST {
-	char x;		// ˆÚ“®—ÊH
-	char y;		// ˆÚ“®—ÊV
-	char d;		// ˆê’v”»’è‚ÌŒë·Œó•â
-	byte b;		// Œ³‚Ìü•ª(¡)
+	char x;		// ç§»å‹•é‡H
+	char y;		// ç§»å‹•é‡V
+	char d;		// ä¸€è‡´åˆ¤å®šæ™‚ã®èª¤å·®å€™è£œ
+	byte b;		// å…ƒã®ç·šåˆ†(ä»Š)
 }DIST;
 
-// DMAóMƒf[ƒ^‚Ì•ªŠ„
+// DMAå—ä¿¡ãƒ‡ãƒ¼ã‚¿ã®åˆ†å‰²
 typedef struct _DETECT {
-	byte n;		// ‹P“x‡ˆÊ
-	byte i;		// ‹P“x
-	int x;		// ‚wÀ•W
-	int y;		// ‚xÀ•W
+	byte n;		// è¼åº¦é †ä½
+	byte i;		// è¼åº¦
+	int x;		// ï¼¸åº§æ¨™
+	int y;		// ï¼¹åº§æ¨™
 }DETECT;
 
-// ’â~”»’è—pƒqƒXƒgƒOƒ‰ƒ€
+// åœæ­¢åˆ¤å®šç”¨ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ 
 typedef struct _FIELD_A {
-	int x;				// ‚wÀ•W
-	int y;				// ‚xÀ•W
-	byte t[S_LVL_MAX];		// ‹P“x‡ˆÊ
-	byte sum;				// ÏZî•ñ
-	byte psum;			// ÏZî•ñ(‘O‰ñ)
-	byte mx;				// ‚wƒ}[ƒWƒ}[ƒN
-	byte my;				// ‚xƒ}[ƒWƒ}[ƒN
+	int x;				// ï¼¸åº§æ¨™
+	int y;				// ï¼¹åº§æ¨™
+	byte t[S_LVL_MAX];		// è¼åº¦é †ä½
+	byte sum;				// ç©ç®—æƒ…å ±
+	byte psum;			// ç©ç®—æƒ…å ±(å‰å›)
+	byte mx;				// ï¼¸ãƒãƒ¼ã‚¸ãƒãƒ¼ã‚¯
+	byte my;				// ï¼¹ãƒãƒ¼ã‚¸ãƒãƒ¼ã‚¯
 }FIELD_A;
 
-// ˆÚ“®ŒŸo—pƒqƒXƒgƒOƒ‰ƒ€
+// ç§»å‹•æ¤œå‡ºç”¨ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ 
 typedef struct _FIELD_B {
-	int x;				// ‚wÀ•W
-	int y;				// ‚xÀ•W
-	byte t[M_LVL_MAX];		// ‹P“x‡ˆÊ
-	byte sum;				// ÏZî•ñ
-	byte mx;				// ‚wƒ}[ƒWƒ}[ƒN
-	byte my;				// ‚xƒ}[ƒWƒ}[ƒN
+	int x;				// ï¼¸åº§æ¨™
+	int y;				// ï¼¹åº§æ¨™
+	byte t[M_LVL_MAX];		// è¼åº¦é †ä½
+	byte sum;				// ç©ç®—æƒ…å ±
+	byte mx;				// ï¼¸ãƒãƒ¼ã‚¸ãƒãƒ¼ã‚¯
+	byte my;				// ï¼¹ãƒãƒ¼ã‚¸ãƒãƒ¼ã‚¯
 }FIELD_B;
 
 #endif //TYPEDEFS_H

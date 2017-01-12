@@ -20,22 +20,22 @@
 #include "ck4_gpio.h"
 #include "ck4_timer.h"
 
-byte rec_vsync;			//!< @brief VSYNCM†ŽóMƒtƒ‰ƒO
+byte rec_vsync;			//!< @brief VSYNCä¿¡å·å—ä¿¡ãƒ•ãƒ©ã‚°
 
-BYTE now_input_1;			//!< @brief \ŽšƒL[‚ÌŒ»Ý‚Ì’l
-BYTE now_input_2;			//!< @brief §ŒäƒL[‚ÌŒ»Ý‚Ì’l
-BYTE pre_input_1;			//!< @brief \ŽšƒL[‚Ì‘O‰ñ‚Ì’l
-BYTE pre_input_2;			//!< @brief §ŒäƒL[‚Ì‘O‰ñ‚Ì’l
-BYTE pre_f_switch_1;		//!< @brief \ŽšƒL[ƒtƒ‰ƒOiXV‘Oj
-BYTE pre_f_switch_2;		//!< @brief §ŒäƒL[ƒtƒ‰ƒOiXV‘Oj
+BYTE now_input_1;			//!< @brief åå­—ã‚­ãƒ¼ã®ç¾åœ¨ã®å€¤
+BYTE now_input_2;			//!< @brief åˆ¶å¾¡ã‚­ãƒ¼ã®ç¾åœ¨ã®å€¤
+BYTE pre_input_1;			//!< @brief åå­—ã‚­ãƒ¼ã®å‰å›žã®å€¤
+BYTE pre_input_2;			//!< @brief åˆ¶å¾¡ã‚­ãƒ¼ã®å‰å›žã®å€¤
+BYTE pre_f_switch_1;		//!< @brief åå­—ã‚­ãƒ¼ãƒ•ãƒ©ã‚°ï¼ˆæ›´æ–°å‰ï¼‰
+BYTE pre_f_switch_2;		//!< @brief åˆ¶å¾¡ã‚­ãƒ¼ãƒ•ãƒ©ã‚°ï¼ˆæ›´æ–°å‰ï¼‰
 
-byte SwCount_Scan1;		//!< @brief SCAN1’†‚ÌSW˜A‘±‰Ÿ‰º‚°”
-byte SwCount_Scan2;		//!< @brief SCAN2’†‚ÌSW˜A‘±‰Ÿ‰º‚°”
-byte SwCount_Scan3;		//!< @brief SCAN3’†‚ÌSW˜A‘±‰Ÿ‰º‚°”
-byte SwCount_ScanPw;		//!< @brief “dŒ¹ƒXƒCƒbƒ`‚Ì˜A‘±‰Ÿ‰º‚°”
+byte SwCount_Scan1;		//!< @brief SCAN1ä¸­ã®SWé€£ç¶šæŠ¼ä¸‹ã’æ•°
+byte SwCount_Scan2;		//!< @brief SCAN2ä¸­ã®SWé€£ç¶šæŠ¼ä¸‹ã’æ•°
+byte SwCount_Scan3;		//!< @brief SCAN3ä¸­ã®SWé€£ç¶šæŠ¼ä¸‹ã’æ•°
+byte SwCount_ScanPw;		//!< @brief é›»æºã‚¹ã‚¤ãƒƒãƒã®é€£ç¶šæŠ¼ä¸‹ã’æ•°
 
 /******************
- * GPIO‰Šú‰»ŠÖ”
+ * GPIOåˆæœŸåŒ–é–¢æ•°
  ******************/
 void gpio_init(void)
 {
@@ -48,7 +48,7 @@ void gpio_init(void)
 //	ANSELF=0;
 	ANSELG=0;
 
-	// GPIO“üo—Í•ûŒüÝ’è
+	// GPIOå…¥å‡ºåŠ›æ–¹å‘è¨­å®š
 	TRISA = 0xffff;
 	TRISB = 0x0000;		// 
 	TRISC = 0;			// 
@@ -57,7 +57,7 @@ void gpio_init(void)
 	TRISF = 0xffdf;		// 
 	TRISG = 0xf002;		// 
 
-	// GPIO‰Šú‰»
+	// GPIOåˆæœŸåŒ–
 	LATB = 0;
 	LATC = 0;
 	LATD = 0x0;		//
@@ -66,7 +66,7 @@ void gpio_init(void)
 
 	CNPUE=0xff;
 
-//ŠeŽíƒsƒ“ƒAƒTƒCƒ“    U1RX:RP113 RPINR18   U1TX:RP112 U1TX:1      ƒNƒƒbƒNo—Í:RP118 REFCLK:110001
+//å„ç¨®ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³    U1RX:RP113 RPINR18   U1TX:RP112 U1TX:1      ã‚¯ãƒ­ãƒƒã‚¯å‡ºåŠ›:RP118 REFCLK:110001
 	RPINR18=113;
 	RPOR12=0x0100;
 	RPOR13=0x3100;
@@ -78,7 +78,7 @@ void gpio_init(void)
 
 
 /******************
- * ŠO•”Š„‚èž‚ÝŠÖ”
+ * å¤–éƒ¨å‰²ã‚Šè¾¼ã¿é–¢æ•°
  ******************/
 void __attribute__((interrupt, no_auto_psv)) _INT1Interrupt(void)
 {

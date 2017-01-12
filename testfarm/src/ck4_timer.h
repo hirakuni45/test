@@ -4,14 +4,14 @@
 #include "timer.h"
 
 typedef enum {
-	USERTIMER0 = 0,		//!< USART’ÊM‚Ìƒ^ƒCƒ€ƒAƒEƒg
-	USERTIMER1,			//!< –¢Žg—p
-	USERTIMER2,			//!< –¢Žg—p
-	USERTIMER3,			//!< –¢Žg—p
-	USERTIMER4,			//!< –¢Žg—p
-	USERTIMER5,			//!< –¢Žg—p
-	USERTIMER6,			//!< –¢Žg—p
-	USERTIMER7,			//!< –¢Žg—p
+	USERTIMER0 = 0,		//!< USARTé€šä¿¡ã®ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆ
+	USERTIMER1,			//!< æœªä½¿ç”¨
+	USERTIMER2,			//!< æœªä½¿ç”¨
+	USERTIMER3,			//!< æœªä½¿ç”¨
+	USERTIMER4,			//!< æœªä½¿ç”¨
+	USERTIMER5,			//!< æœªä½¿ç”¨
+	USERTIMER6,			//!< æœªä½¿ç”¨
+	USERTIMER7,			//!< æœªä½¿ç”¨
 	USERTIMER_LAST,
 } USERTIMER_ID;
 

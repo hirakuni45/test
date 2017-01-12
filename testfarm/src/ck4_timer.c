@@ -35,11 +35,11 @@ int c_device_no=0;
 #define RSW_CNT	(5)
 
 
-/** ƒ^ƒCƒ}‰Šú‰».
+/** ã‚¿ã‚¤ãƒåˆæœŸåŒ–.
  */
 void timer_init(void)
 {
-	// ƒ^ƒCƒ}1‚ğƒI[ƒvƒ“
+	// ã‚¿ã‚¤ãƒ1ã‚’ã‚ªãƒ¼ãƒ—ãƒ³
 	OpenTimer1(	T1_ON				/* Timer1 ON */
 		 		& T1_IDLE_CON			/* operate during sleep */
 		 		& T1_GATE_OFF			/* Timer Gate time accumulation disabled */
@@ -48,49 +48,49 @@ void timer_init(void)
 		 		& T1_SOURCE_INT,		/* Internal clock source */
 		 		TIMER_INTERVAL);		// 1ms interval
 
-	// ƒ^ƒCƒ}1Š„‚è‚İİ’è
+	// ã‚¿ã‚¤ãƒ1å‰²ã‚Šè¾¼ã¿è¨­å®š
 	ConfigIntTimer1(	T1_INT_PRIOR_4	/* 100 = Interrupt is priority 4 */
 		 			& T1_INT_ON);		/* Interrupt Enable */
 }
 
-/** ƒ†[ƒUƒ^ƒCƒ}ŠJn.
- * @param id ƒ†[ƒUƒ^ƒCƒ}ID
- * @param ms ŠÔ(ms’PˆÊ)
+/** ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒé–‹å§‹.
+ * @param id ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒID
+ * @param ms æ™‚é–“(mså˜ä½)
  */
 void UserTimerStart(USERTIMER_ID id, int ms)
 {
-	usertimer[id].enable = 0;	// ˆÈ~‚Ìˆ—’†‚Éƒ^ƒCƒ}Š„‚è‚İ‚ª“ü‚Á‚Ä‚àˆ—‚ğ‚µ‚È‚¢‚æ‚¤‚É
-	usertimer[id].counter = ms;	// ŠÔ(ms’PˆÊ)‚ğİ’è
-	usertimer[id].enable = 1;	// “®ìŠJn
+	usertimer[id].enable = 0;	// ä»¥é™ã®å‡¦ç†ä¸­ã«ã‚¿ã‚¤ãƒå‰²ã‚Šè¾¼ã¿ãŒå…¥ã£ã¦ã‚‚å‡¦ç†ã‚’ã—ãªã„ã‚ˆã†ã«
+	usertimer[id].counter = ms;	// æ™‚é–“(mså˜ä½)ã‚’è¨­å®š
+	usertimer[id].enable = 1;	// å‹•ä½œé–‹å§‹
 }
 
-/** ƒ†[ƒUƒ^ƒCƒ}’læ“¾
- * @param id ƒ†[ƒUƒ^ƒCƒ}ID
+/** ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒå€¤å–å¾—
+ * @param id ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒID
  */
 word UserTimerValue(USERTIMER_ID id)
 {
 	return usertimer[id].counter;
 }
 
-/** ƒ†[ƒUƒ^ƒCƒ}’â~.
- * @param id ƒ†[ƒUƒ^ƒCƒ}ID
+/** ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒåœæ­¢.
+ * @param id ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒID
  */
 void UserTimerStop(USERTIMER_ID id)
 {
-	usertimer[id].enable = 0;	// ƒJƒEƒ“ƒ^‚ğ’â~
+	usertimer[id].enable = 0;	// ã‚«ã‚¦ãƒ³ã‚¿ã‚’åœæ­¢
 }
 
-/** ƒ†[ƒUƒ^ƒCƒ}‚Pó‘Ô.
- * @param id ƒ†[ƒUƒ^ƒCƒ}ID
- * @return ƒJƒEƒ“ƒ^ó‘Ô 1:“®ì’†,0:’â~’†
+/** ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒï¼‘çŠ¶æ…‹.
+ * @param id ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒID
+ * @return ã‚«ã‚¦ãƒ³ã‚¿çŠ¶æ…‹ 1:å‹•ä½œä¸­,0:åœæ­¢ä¸­
  */
 int UserTimerStatus(USERTIMER_ID id)
 {
 	return usertimer[id].enable;
 }
 
-/** ƒ†[ƒUƒ^ƒCƒ}ˆ—.
- *  ƒ^ƒCƒ}Š„‚İƒ‹[ƒ`ƒ“‚©‚çƒR[ƒ‹‚³‚ê‚é(1ms‚¨‚«)
+/** ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒå‡¦ç†.
+ *  ã‚¿ã‚¤ãƒå‰²è¾¼ã¿ãƒ«ãƒ¼ãƒãƒ³ã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹(1msãŠã)
  */
 void UserTimer_isr(void)
 {
@@ -106,8 +106,8 @@ void UserTimer_isr(void)
 	}
 }
 
-///** ƒEƒFƒCƒg.
-// * @param ms ŠÔ(ms’PˆÊ)
+///** ã‚¦ã‚§ã‚¤ãƒˆ.
+// * @param ms æ™‚é–“(mså˜ä½)
 // */
 //void wait_ms(int ms)
 //{
@@ -115,18 +115,18 @@ void UserTimer_isr(void)
 //	 while (UserTimerStatus(USERTIMER1));
 //}
 
-/** ƒ^ƒCƒ}Š„‚İˆ—ƒ‹[ƒ`ƒ“.
- *  üŠúF1ms
+/** ã‚¿ã‚¤ãƒå‰²è¾¼ã¿å‡¦ç†ãƒ«ãƒ¼ãƒãƒ³.
+ *  å‘¨æœŸï¼š1ms
  */
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
 {
-	static int interval_key_scan	= INTERVAL_KEY_SCAN;	// ƒL[ƒZƒ“ƒXƒ}ƒgƒŠƒNƒXüŠúƒJƒEƒ“ƒ^
+	static int interval_key_scan	= INTERVAL_KEY_SCAN;	// ã‚­ãƒ¼ã‚»ãƒ³ã‚¹ãƒãƒˆãƒªã‚¯ã‚¹å‘¨æœŸã‚«ã‚¦ãƒ³ã‚¿
 	int dn;
 
-	TMR1 = 0;			// ƒ^ƒCƒ}‰Šú‰»
-	_T1IF = 0;		// Š„‚è‚İƒtƒ‰ƒOƒNƒŠƒA
+	TMR1 = 0;			// ã‚¿ã‚¤ãƒåˆæœŸåŒ–
+	_T1IF = 0;		// å‰²ã‚Šè¾¼ã¿ãƒ•ãƒ©ã‚°ã‚¯ãƒªã‚¢
 
-	// 100msüŠú
+	// 100mså‘¨æœŸ
 	if (--interval_key_scan <= 0) 
 	{
 		dn=~PORTE;
@@ -153,7 +153,7 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
 		interval_key_scan = INTERVAL_KEY_SCAN;
 	}
 
-	// ƒ†[ƒUƒ^ƒCƒ}‚ÌƒJƒEƒ“ƒgˆ—
+	// ãƒ¦ãƒ¼ã‚¶ã‚¿ã‚¤ãƒã®ã‚«ã‚¦ãƒ³ãƒˆå‡¦ç†
 	UserTimer_isr();
 }
 

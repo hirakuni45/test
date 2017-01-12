@@ -20,17 +20,17 @@
 #include "common.h"
 #include "ck4_uart.h"
 
-#define BAUD			(115200L)			/**< UART2ƒ{[ƒŒ[ƒg */
-#define BUFMAX_UART	(256)			/**< UARTƒŠƒ“ƒOƒoƒbƒtƒ@ƒTƒCƒY */
+#define BAUD			(115200L)			/**< UART2ãƒœãƒ¼ãƒ¬ãƒ¼ãƒˆ */
+#define BUFMAX_UART	(256)			/**< UARTãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º */
 
-volatile char uart_buf[BUFMAX_UART];	/**< UARTƒŠƒ“ƒOƒoƒbƒtƒ@ */
-int ptrWR_uart_buf = 0;				/**< UARTƒŠƒ“ƒOƒoƒbƒtƒ@‘‚İƒ|ƒCƒ“ƒ^ */
-int ptrRD_uart_buf = 0;				/**< UARTƒŠƒ“ƒOƒoƒbƒtƒ@“Ço‚µƒ|ƒCƒ“ƒ^ */
+volatile char uart_buf[BUFMAX_UART];	/**< UARTãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡ */
+int ptrWR_uart_buf = 0;				/**< UARTãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡æ›¸è¾¼ã¿ãƒã‚¤ãƒ³ã‚¿ */
+int ptrRD_uart_buf = 0;				/**< UARTãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡èª­å‡ºã—ãƒã‚¤ãƒ³ã‚¿ */
 
 
 void uart_init(void)
 {
-	// UART1ƒI[ƒvƒ“
+	// UART1ã‚ªãƒ¼ãƒ—ãƒ³
 	OpenUART1(	UART_EN					/* Module enable */
 				& UART_IrDA_DISABLE		/* IrDA encoder and decoder disabled */
 				& UART_MODE_SIMPLEX		/* UxRTS pin in Simplex mode */
@@ -53,7 +53,7 @@ void uart_init(void)
 
 				((dFcy/BAUD) / 16) -1);
 
-	// UART2Š„‚İİ’è
+	// UART2å‰²è¾¼ã¿è¨­å®š
 	ConfigIntUART1(
 					UART_RX_INT_EN		/*Receive interrupt enabled*/
 				 	& UART_RX_INT_PR6		/*Priority RX interrupt 6*/
@@ -63,23 +63,23 @@ void uart_init(void)
 }
 
 /*
- * UART2óMŠ„‚İ
- *  ƒŠƒ“ƒOƒoƒbƒtƒ@‚ÉóMƒf[ƒ^‚ğŠi”[‚·‚é
+ * UART2å—ä¿¡å‰²è¾¼ã¿
+ *  ãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡ã«å—ä¿¡ãƒ‡ãƒ¼ã‚¿ã‚’æ ¼ç´ã™ã‚‹
  */
 void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void)
 {
-	_U1RXIF = 0;		// Š„‚è‚İƒtƒ‰ƒOƒNƒŠƒA
+	_U1RXIF = 0;		// å‰²ã‚Šè¾¼ã¿ãƒ•ãƒ©ã‚°ã‚¯ãƒªã‚¢
 
 	uart_buf[ptrWR_uart_buf] = ReadUART1();
 
-	// ‘‚İƒ|ƒCƒ“ƒ^§Œä
+	// æ›¸è¾¼ã¿ãƒã‚¤ãƒ³ã‚¿åˆ¶å¾¡
 	if (++ptrWR_uart_buf >= BUFMAX_UART)
 		ptrWR_uart_buf = 0;
 }
 
 /*
- * UARTƒŠƒ“ƒOƒoƒbƒtƒ@‚©‚ç1•¶š“ü—Í
- *  @return óMƒoƒbƒtƒ@‹ó‚Ìê‡‚Í-1A‹ó‚Å‚È‚¢ê‡‚Í•¶š‚ğ•Ô‚·
+ * UARTãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰1æ–‡å­—å…¥åŠ›
+ *  @return å—ä¿¡ãƒãƒƒãƒ•ã‚¡ç©ºã®å ´åˆã¯-1ã€ç©ºã§ãªã„å ´åˆã¯æ–‡å­—ã‚’è¿”ã™
  */
 int getc_from_usart_buf(void)
 {
@@ -94,45 +94,45 @@ int getc_from_usart_buf(void)
 	return ret_c;
 }
 
-/** UARTóM.
- * @return óM•¶š
+/** UARTå—ä¿¡.
+ * @return å—ä¿¡æ–‡å­—
  */
 int usart_read(void)
 {
 	return ReadUART1();
 }
 
-/** UARTóM.
- * @return óM•¶š
+/** UARTå—ä¿¡.
+ * @return å—ä¿¡æ–‡å­—
  */
 int usart_getc(void)
 {
 	return getcUART1();
 }
 
-/** UARTóM.
- * @param c ‘—M•¶š
+/** UARTå—ä¿¡.
+ * @param c é€ä¿¡æ–‡å­—
  */
 void usart_write(int c)
 {
 	WriteUART1(c);
 }
 
-/** UARTóMƒf[ƒ^—L–³.
- * @return 1:ƒf[ƒ^óMÏ,0:–¢óM
+/** UARTå—ä¿¡ãƒ‡ãƒ¼ã‚¿æœ‰ç„¡.
+ * @return 1:ãƒ‡ãƒ¼ã‚¿å—ä¿¡æ¸ˆ,0:æœªå—ä¿¡
  */
 int usart_drdy(void)
 {
 	return DataRdyUART1();
 }
 
-/** UART•¶š—ñ‘—M.
- * @param s ‘—M•¶š—ñ
+/** UARTæ–‡å­—åˆ—é€ä¿¡.
+ * @param s é€ä¿¡æ–‡å­—åˆ—
  */
 void usart_puts(char *s)
 {
 	for (; *s; s++) {
-		while (BusyUART1());	// ‘—MŠ®—¹‚Ü‚Åwait
+		while (BusyUART1());	// é€ä¿¡å®Œäº†ã¾ã§wait
 		usart_write(*s);
 	}
 }
@@ -140,7 +140,7 @@ void usart_puts(char *s)
 void usart_put(char *s)
 {
 	for (; *s; s++) {
-		while (BusyUART1());	// ‘—MŠ®—¹‚Ü‚Åwait
+		while (BusyUART1());	// é€ä¿¡å®Œäº†ã¾ã§wait
 		usart_write(*s);
 	}
 }

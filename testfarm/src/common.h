@@ -26,7 +26,7 @@
 
 #define FCY 40000000UL
 
-#define Firm_Version	"0000"						//!< @brief ƒtƒ@[ƒ€ƒo[ƒWƒ‡ƒ“
+#define Firm_Version	"0000"						//!< @brief ãƒ•ã‚¡ãƒ¼ãƒ ãƒãƒ¼ã‚¸ãƒ§ãƒ³
 
 #define BUSY		(_RG8)
 
@@ -66,10 +66,10 @@
 #define TWEasign	(7<<1)
 #define Serialmode	(8<<1)
 
-#define DEFINE_MAX	(10240)	//EEPROM‚©‚çŽ‚Á‚Ä‚­‚éÅ‘åBYTE”
-//#define DEFINE_MAX	(100)		//for debug ’ˆÓ 
+#define DEFINE_MAX	(10240)	//EEPROMã‹ã‚‰æŒã£ã¦ãã‚‹æœ€å¤§BYTEæ•°
+//#define DEFINE_MAX	(100)		//for debug æ³¨æ„ 
 
-#define FPGA_MEMORY (2048)	//FPGA ƒƒ‚ƒŠ[’· RAM‚ª‘«‚è‚È‚­‚È‚Á‚½‚çŒ¸‚ç‚·
+#define FPGA_MEMORY (2048)	//FPGA ãƒ¡ãƒ¢ãƒªãƒ¼é•· RAMãŒè¶³ã‚Šãªããªã£ãŸã‚‰æ¸›ã‚‰ã™
 
 /////////////
 
@@ -84,15 +84,15 @@
 #define dFcy						(dFosc/2)       /**< Instruction cycle frequency (Hz) */
 #define dTcy						(1.0/dFcy)      /**< Instruction cycle period (sec) */
 
-#define TIMER_INTERVAL				(156)			/**< 1ms duration(CPU“®ìƒNƒƒbƒN[80.0Mhz/2]/256/144) */
+#define TIMER_INTERVAL				(156)			/**< 1ms duration(CPUå‹•ä½œã‚¯ãƒ­ãƒƒã‚¯[80.0Mhz/2]/256/144) */
 
 #define BYTE_MAX					(255)
 
-#define INTERVAL_KEY_SCAN			(100)				//!< @brief SCANM†Ø‘ÖƒCƒ“ƒ^[ƒoƒ‹
+#define INTERVAL_KEY_SCAN			(100)				//!< @brief SCANä¿¡å·åˆ‡æ›¿ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«
 
-#define BUFMAX_STRBUF				(128)			//!< @brief strbuf‚ÌÅ‘å•¶Žš”
+#define BUFMAX_STRBUF				(128)			//!< @brief strbufã®æœ€å¤§æ–‡å­—æ•°
 #define BUFMAX_COMMAND				(128)
-#define BUFMAX_LENGTH				(16)				//!< @brief ƒRƒ}ƒ“ƒh•¶Žš”
+#define BUFMAX_LENGTH				(16)				//!< @brief ã‚³ãƒžãƒ³ãƒ‰æ–‡å­—æ•°
 
 
 #define EEP_USED					(0x1fff0)

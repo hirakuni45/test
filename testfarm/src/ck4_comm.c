@@ -67,34 +67,34 @@ const ComTblST CommandTable[]={
 
 const char serial_str[] = {"UDT_SERIAL      "};
 
-// USARTƒRƒ}ƒ“ƒhƒnƒ“ƒhƒ‰
+// USARTã‚³ãƒãƒ³ãƒ‰ãƒãƒ³ãƒ‰ãƒ©
 void usart_command_handler(void)
 {
-	static char	command[BUFMAX_COMMAND+1];		// ƒRƒ}ƒ“ƒhƒoƒbƒtƒ@
-	static unsigned int	idx_command = 0;		// ƒRƒ}ƒ“ƒhƒoƒbƒtƒ@‚Ì‘‚İƒ|ƒCƒ“ƒ^
-	static int	packet_receiving = 0;			// ƒpƒPƒbƒgóM’†ƒtƒ‰ƒO
-	char c; 										// •¶šŠi”[—p
+	static char	command[BUFMAX_COMMAND+1];		// ã‚³ãƒãƒ³ãƒ‰ãƒãƒƒãƒ•ã‚¡
+	static unsigned int	idx_command = 0;		// ã‚³ãƒãƒ³ãƒ‰ãƒãƒƒãƒ•ã‚¡ã®æ›¸è¾¼ã¿ãƒã‚¤ãƒ³ã‚¿
+	static int	packet_receiving = 0;			// ãƒ‘ã‚±ãƒƒãƒˆå—ä¿¡ä¸­ãƒ•ãƒ©ã‚°
+	char c; 										// æ–‡å­—æ ¼ç´ç”¨
 //	int pp;	
 
-	// USARTƒŠƒ“ƒOƒoƒbƒtƒ@‚©‚ç•¶š“ü—Í
+	// USARTãƒªãƒ³ã‚°ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰æ–‡å­—å…¥åŠ›
 	while ((c = getc_from_usart_buf()) >= 0) {
-		UserTimerStart(USERTIMER0, 2000);			// 2sƒ^ƒCƒ}ƒXƒ^[ƒg
-		packet_receiving = 1;						// ƒpƒPƒbƒgóM’†
-		// ‰üsƒR[ƒhŒŸo
+		UserTimerStart(USERTIMER0, 2000);			// 2sã‚¿ã‚¤ãƒã‚¹ã‚¿ãƒ¼ãƒˆ
+		packet_receiving = 1;						// ãƒ‘ã‚±ãƒƒãƒˆå—ä¿¡ä¸­
+		// æ”¹è¡Œã‚³ãƒ¼ãƒ‰æ¤œå‡º
 		if (c == '\n' || c == '\r' || c == '\0') {
-			packet_receiving = 0;					// ƒpƒPƒbƒgóMI—¹
+			packet_receiving = 0;					// ãƒ‘ã‚±ãƒƒãƒˆå—ä¿¡çµ‚äº†
 			command[idx_command] = '\0';
 			UserTimerStop(USERTIMER0);
 			if (idx_command == 0) {
-				// ‹ós‚Í‚È‚É‚à‚µ‚È‚¢
+				// ç©ºè¡Œã¯ãªã«ã‚‚ã—ãªã„
 				continue;
 			} else {
-				// ƒRƒ}ƒ“ƒhÀs
+				// ã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œ
 				exec_command(command);
 				idx_command = 0;
 			}
 		} else {
-			// ‰üsƒR[ƒhˆÈŠO‚Íƒoƒbƒtƒ@‚ÉŠi”[
+			// æ”¹è¡Œã‚³ãƒ¼ãƒ‰ä»¥å¤–ã¯ãƒãƒƒãƒ•ã‚¡ã«æ ¼ç´
 			if ((unsigned char)idx_command >= BUFMAX_COMMAND) {
 				idx_command = 0;
 			} else {
@@ -103,9 +103,9 @@ void usart_command_handler(void)
 		}
 	}
 			
-	// ƒRƒ}ƒ“ƒhóMƒ^ƒCƒ€ƒAƒEƒgƒ`ƒFƒbƒN
+	// ã‚³ãƒãƒ³ãƒ‰å—ä¿¡ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆãƒã‚§ãƒƒã‚¯
 	if (packet_receiving && !UserTimerStatus(USERTIMER0)) {
-		packet_receiving = 0;						// ƒpƒPƒbƒgóMI—¹
+		packet_receiving = 0;						// ãƒ‘ã‚±ãƒƒãƒˆå—ä¿¡çµ‚äº†
 		usart_puts("ERR: USART timeout\r\n");
 		idx_command = 0;
 		command[idx_command] = '\0';
@@ -113,13 +113,13 @@ void usart_command_handler(void)
 	}
 }
 
-// ƒf[ƒ^‚ÌƒRƒs[
+// ãƒ‡ãƒ¼ã‚¿ã®ã‚³ãƒ”ãƒ¼
 unsigned long copy_bits(unsigned long d)
 {
 	byte i;
 	for(i = 0; i < 24; ++i) {
 		char src = pin_copy_tbl[i];
-		if(src < 0 || src >= 24) continue;  // ”ÍˆÍŠO‚Í[NC]
+		if(src < 0 || src >= 24) continue;  // ç¯„å›²å¤–ã¯[NC]
 		if((d & (1L << src)) != 0) {
 			d |=   1L << i;
 		} else {
@@ -129,17 +129,17 @@ unsigned long copy_bits(unsigned long d)
 	return d;
 }
 
-// USARTƒRƒ}ƒ“ƒhÀs
+// USARTã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œ
 //void exec_command(uchar *com)
 byte exec_command(char *com)
 {
-	int idx = 0;									// ƒpƒ‰ƒ[ƒ^ƒJƒEƒ“ƒ^[
+	int idx = 0;									// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
 	int i;
 	unsigned int tmpi1,tmpi2;
 //	short tmps;
-	char  seps[] = ",";								// •ª—£•¶š
-	char *string;									// ƒRƒ}ƒ“ƒh•¶š—ñ
-	char *cmd;										// ƒRƒ}ƒ“ƒh
+	char  seps[] = ",";								// åˆ†é›¢æ–‡å­—
+	char *string;									// ã‚³ãƒãƒ³ãƒ‰æ–‡å­—åˆ—
+	char *cmd;										// ã‚³ãƒãƒ³ãƒ‰
 	char cmp,error1,error2,e3;
 	byte cmd_no1;
 	char cmd_no2;
@@ -150,7 +150,7 @@ byte exec_command(char *com)
 	unsigned long eepa;
 	byte busy_flg; 
 
-	// ","‚Å•¶šSPLIT
+	// ","ã§æ–‡å­—SPLIT
 	string = strtok((char *)com, seps);
 	cmd = string;
 
@@ -171,7 +171,7 @@ byte exec_command(char *com)
 	}
 
 
-	//ƒRƒ}ƒ“ƒhŒŸõ(ŒÅ’è)
+	//ã‚³ãƒãƒ³ãƒ‰æ¤œç´¢(å›ºå®š)
 	cmd_no1 = 0;
 	error1 = 0;
 	error2 = 0;
@@ -190,10 +190,10 @@ byte exec_command(char *com)
 		++cmd_no1;
 	}
 
-	//error1=1 ŒÅ’èƒRƒ}ƒ“ƒh‚Å‚Í‚È‚¢
+	//error1=1 å›ºå®šã‚³ãƒãƒ³ãƒ‰ã§ã¯ãªã„
 
 	if(error1!=0){
-		// Serialƒ‚[ƒh?
+		// Serialãƒ¢ãƒ¼ãƒ‰?
 		if(device_no==UDT_SERIAL){
 			if((cmd[0]=='C')&&(cmd[1]=='A')) {
 				ret=serial_proc();
@@ -218,7 +218,7 @@ byte exec_command(char *com)
 			}
 		}
 
-		// ƒRƒ}ƒ“ƒh”‚ğƒJƒEƒ“ƒg
+		// ã‚³ãƒãƒ³ãƒ‰æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ
 		cmd_no2 = 0;
 		error2 = 1;
 		for(i=0; i < command_num; i++) {
@@ -228,12 +228,12 @@ byte exec_command(char *com)
 			}
 			++cmd_no2;	
 		}
-		if(error2 == 0) {  //ˆø”ƒ`ƒFƒbƒN‚µ‚È‚¢Bmaxmin‚Åƒ`ƒFƒbƒNB
+		if(error2 == 0) {  //å¼•æ•°ãƒã‚§ãƒƒã‚¯ã—ãªã„ã€‚maxminã§ãƒã‚§ãƒƒã‚¯ã€‚
 		}
 	}
 
 cmd_trns:
-	// Command“]‘— ‚µ‚È‚¢
+	// Commandè»¢é€ ã—ãªã„
 //	usart_put(cmd); 
 //	usart_puts(",");
 	if(error2!=0)goto error_proc;
@@ -246,9 +246,9 @@ cmd_trns:
 			}
 		}
 
-		switch(cmd_no1)			//ŒÅ’èƒRƒ}ƒ“ƒh
+		switch(cmd_no1)			//å›ºå®šã‚³ãƒãƒ³ãƒ‰
 		{
-			case 0:// ƒfƒoƒCƒX”Ô†write
+			case 0:// ãƒ‡ãƒã‚¤ã‚¹ç•ªå·write
 				if(eeprom_used==0)goto error_proc;   
 				arg=atol(com_data[0]);
 				if (arg>99) goto error_proc;
@@ -262,17 +262,17 @@ cmd_trns:
 					usart_puts("DONE");
 					break;
 				}
-				//	î•ñ“Ç‚İæ‚è
+				//	æƒ…å ±èª­ã¿å–ã‚Š
 				if(get_device_info()==0)	usart_puts("DONE");
 				else goto error_proc;
 				break;
-			case 1:	// ƒfƒoƒCƒX”Ô†READ
+			case 1:	// ãƒ‡ãƒã‚¤ã‚¹ç•ªå·READ
 				usart_put(cmd); 
 				usart_puts(",");
 				LtoA(device_no,tmpc);
 				usart_put(tmpc);
 				break;
-			case 2:// ƒNƒƒbƒNƒZƒbƒg
+			case 2:// ã‚¯ãƒ­ãƒƒã‚¯ã‚»ãƒƒãƒˆ
 //				strcpy(com_data[0],period_str);
 				if(busy_flg!=0)goto busy_proc;
 				tmpi1=atoi(com_data[0]);
@@ -284,7 +284,7 @@ cmd_trns:
 				fpga_Control(tmpi1,tmpi2);
 				usart_puts("DONE");
 				break;
-			case 3:// ƒNƒƒbƒNƒŠ[ƒh
+			case 3:// ã‚¯ãƒ­ãƒƒã‚¯ãƒªãƒ¼ãƒ‰
 				usart_put(cmd); 
 				usart_puts(",");
 				LtoA(clk_period,tmpc);
@@ -293,16 +293,16 @@ cmd_trns:
 				LtoA(clk_phase,tmpc);
 				usart_put(tmpc);
 				break;
-			case 4:// EEPROM‘‚«‚İ
+			case 4:// EEPROMæ›¸ãè¾¼ã¿
 				eepadr=0;
 				eeprom_stat=1;
 				usart_puts("DONE");
 				break;
-			case 5:// EEPROM‘‚«‚İƒf[ƒ^
+			case 5:// EEPROMæ›¸ãè¾¼ã¿ãƒ‡ãƒ¼ã‚¿
 				eep_writeproc();
 				usart_puts("DONE");
 				break;
-			case 6:// EEPROM‘‚«‚İI—¹
+			case 6:// EEPROMæ›¸ãè¾¼ã¿çµ‚äº†
 				tmpb=eepadr&0xff;
 				write_eeprom(EEP_USED,tmpb);
 				tmpb=(eepadr>>8)&0xff;
@@ -320,17 +320,17 @@ cmd_trns:
 
 				usart_puts("DONE");
 				break;
-			case 7:// EEPROM“Ç‚İ‚İ
+			case 7:// EEPROMèª­ã¿è¾¼ã¿
 				eepadr=0;
 				eeprom_stat=2;
 				usart_puts("DONE");
 //				usart_puts("\r\n");
 				break;
-			case 8:// EEPROM“Ç‚İ‚İƒf[ƒ^
+			case 8:// EEPROMèª­ã¿è¾¼ã¿ãƒ‡ãƒ¼ã‚¿
 				usart_puts("EEPGT,");
 				eep_readproc();
 				break;
-			case 9:// EEPROM‰Šú‰»
+			case 9:// EEPROMåˆæœŸåŒ–
 				for(eepa=0;eepa<0x20000;eepa++){
 					write_eeprom(eepa,0xff);
 				__delay_ms(5);
@@ -342,8 +342,8 @@ cmd_trns:
 				fpga_abort();
 				usart_puts("DONE");
 				break;
-			case 11:// ƒVƒŠƒAƒ‹pin SET
-				tmpi1=atoi(com_data[0])-1;		//ˆø”‚Í1ƒIƒŠƒWƒ“
+			case 11:// ã‚·ãƒªã‚¢ãƒ«pin SET
+				tmpi1=atoi(com_data[0])-1;		//å¼•æ•°ã¯1ã‚ªãƒªã‚¸ãƒ³
 				tmpi2=atoi(com_data[1])-1;
 				if((tmpi1>=4)||(tmpi1<0))goto error_proc;
 				if((tmpi2>=24)||(tmpi2<0))goto error_proc;
@@ -352,7 +352,7 @@ cmd_trns:
 				write_eeprom((unsigned long)(EEP_SERIAL+tmpi1),(byte)tmpi2);
 				usart_puts("DONE");
 				break;
-			case 12:// ƒVƒŠƒAƒ‹pin READ
+			case 12:// ã‚·ãƒªã‚¢ãƒ«pin READ
 				usart_put(cmd); 
 				usart_puts(",");
 				LtoA(serial_pin[0]+1,tmpc);
@@ -389,7 +389,7 @@ cmd_trns:
 				break;
 		}
 	}
-	else{						//İ’èƒRƒ}ƒ“ƒh
+	else{						//è¨­å®šã‚³ãƒãƒ³ãƒ‰
 		if(busy_flg!=0) goto busy_proc;
 		e3 = Make40bit(cmd_no2);
 		if (e3 != 0) goto error_proc;
@@ -401,7 +401,7 @@ cmd_trns:
 	}
 
 
-//	while(BUSY!=0){}			//I‚í‚é‚Ü‚Å‘Ò‚Â
+//	while(BUSY!=0){}			//çµ‚ã‚ã‚‹ã¾ã§å¾…ã¤
 	usart_puts("\r\n");
 	return TRUE;
 
@@ -414,7 +414,7 @@ busy_proc:
 }
 
 
-//–‘O‰ğÍ
+//äº‹å‰è§£æ
 //input:pin_info,aux_init
 //output:out_init,data_width,pintofpga
 void PinAnalyze()
@@ -426,29 +426,29 @@ void PinAnalyze()
 	unsigned long init=0;
 	unsigned long b=1; 
 	
-	//usepin,pintofpga ì¬
+	//usepin,pintofpga ä½œæˆ
 	for (i = 0; i < 40; i++) {
 		pintofpga[i] = 0;
 		usepin[i] = 0;
 	}
-	pintofpga[0] = 24;  // TWE ‚Ì–³Œø‰Šú’l
+	pintofpga[0] = 24;  // TWE ã®ç„¡åŠ¹åˆæœŸå€¤
 
 	for(i=0;i<24;i++){
 		p1 = pin_info[i][0];
 		p2 = pin_info[i][1];
 
-		if((p1 & 0x80) != 0){	// g‚í‚ê‚Ä‚¢‚é
+		if((p1 & 0x80) != 0){	// ä½¿ã‚ã‚Œã¦ã„ã‚‹
 			if((p1 & 0x40) != 0){
 				usepin[0] = 0x80; // TWE
 				pintofpga[0] = i;
 			}
-			else if((p1 & 0x20) == 0) {  //§Œäü
+			else if((p1 & 0x20) == 0) {  //åˆ¶å¾¡ç·š
 				usepin[p2+1] = 0x80 + (p1 & 0x0f);
 				pintofpga[p2+1] = i;
 				init += ((p1 & 0x10) >> 4) << i;
 			}
-			else {				//DATAü or AUX
-				if((p1&0x1f)>23){  //AUXü
+			else {				//DATAç·š or AUX
+				if((p1&0x1f)>23){  //AUXç·š
 					usepin[(p1&0x1f)-16]=0x80;
 					pintofpga[(p1&0x1f)-16]=i;
 					auxno = (p1 & 0x1f) - 24;
@@ -472,7 +472,7 @@ void PinAnalyze()
 	}
 }
 
-//40bitƒf[ƒ^ì¬
+//40bitãƒ‡ãƒ¼ã‚¿ä½œæˆ
 //input:comnum,command_define,com_data
 //output:outdat,outdat_cnt;
 char Make40bit(int comnum)
@@ -492,7 +492,7 @@ char Make40bit(int comnum)
 //	byte xx,yy;
 	unsigned long bb=1;
 
-	unsigned int proccnt = 0;		//ŒJ‚è•Ô‚µ‚Ì‚½‚ß‚ÉAƒJƒEƒ“ƒg‚µ‚Ä‚¨‚­
+	unsigned int proccnt = 0;		//ç¹°ã‚Šè¿”ã—ã®ãŸã‚ã«ã€ã‚«ã‚¦ãƒ³ãƒˆã—ã¦ãŠã
 	unsigned long repeat;
 
 //	char arg[20];
@@ -515,8 +515,8 @@ char Make40bit(int comnum)
 		comadr++;
 		b[1] = command_define[memadr + comadr];
 		comadr++;
-		for(j = 0; j < 8; j++){  //§Œäü
-			if((usepin[j] & 0x80)!=0){		//g—p
+		for(j = 0; j < 8; j++){  //åˆ¶å¾¡ç·š
+			if((usepin[j] & 0x80)!=0){		//ä½¿ç”¨
 				property = (~(b[0] >> 6)) & 0x3;
 				ctrl |= ((usepin[j] >> property) & 0x1) << j;
 			}
@@ -528,7 +528,7 @@ char Make40bit(int comnum)
 		switch((b[0] & 0x3f)) {
 			case 0:	
 				break;
-			case 1:// ’è”
+			case 1:// å®šæ•°
 				b[2] = command_define[memadr + comadr];
 				comadr++;
 				b[3] = command_define[memadr + comadr];
@@ -541,7 +541,7 @@ char Make40bit(int comnum)
 				datadr++;
 				proccnt++;
 				break;
-			case 2: // ˆø”
+			case 2: // å¼•æ•°
 				b[2] = command_define[memadr + comadr];
 				comadr++;
 				outnum = b[2] >> 5;
@@ -560,9 +560,9 @@ char Make40bit(int comnum)
 					proccnt++;
 					dat = dat >> data_width;					
 				}
-				if(dat != 0) goto error_p;	//c‚Á‚Ä‚¢‚é‚Ì‚Í•Ï
+				if(dat != 0) goto error_p;	//æ®‹ã£ã¦ã„ã‚‹ã®ã¯å¤‰
 				break;
-			case 3: // œZbit
+			case 3: // é™¤ç®—bit
 				b[2] = command_define[memadr + comadr];
 				comadr++;
 				b[3] = command_define[memadr + comadr];
@@ -577,11 +577,11 @@ char Make40bit(int comnum)
 				else {
 					argument=atol(com_data[argnum]);
 				}
-				if(argument==0)goto error_p;	//1 orijin‚È‚Ì‚Å0‚Í•Ï
+				if(argument==0)goto error_p;	//1 orijinãªã®ã§0ã¯å¤‰
 				mm=(unsigned long)b[3]+((unsigned long)b[4]<<8);
 				dat=(argument-1)/(mm+1)+1;
 				dat=bb<<(dat-1);
-				if(dat==0)goto error_p;		//bit‚ª–³‚¢‚Ì‚Í•Ï
+				if(dat==0)goto error_p;		//bitãŒç„¡ã„ã®ã¯å¤‰
 
 				for (k = 0; k < outnum + 1; k++){
 					outdat[datadr].control=ctrl;
@@ -590,9 +590,9 @@ char Make40bit(int comnum)
 					proccnt++;
 					dat=dat>>data_width;					
 				}
-				if(dat!=0) goto error_p;	//c‚Á‚Ä‚¢‚é‚Ì‚Í•Ï
+				if(dat!=0) goto error_p;	//æ®‹ã£ã¦ã„ã‚‹ã®ã¯å¤‰
 				break;
-			case 4://œ‰ÁZ
+			case 4://é™¤åŠ ç®—
 				b[2]=command_define[memadr+comadr];comadr++;
 				b[3]=command_define[memadr+comadr];comadr++;
 				b[4]=command_define[memadr+comadr];comadr++;
@@ -606,7 +606,7 @@ char Make40bit(int comnum)
 				else {
 					argument=atol(com_data[argnum]);
 				}
-				if(argument==0)goto error_p;	//1 orijin‚È‚Ì‚Å0‚Í•Ï
+				if(argument==0)goto error_p;	//1 orijinãªã®ã§0ã¯å¤‰
 				mm=(unsigned long)b[3]+((unsigned long)b[4]<<8);
 				kk=(unsigned long)b[5]+((unsigned long)b[6]<<8);
 				dat=((argument-1)/(mm+1))+kk;
@@ -617,7 +617,7 @@ char Make40bit(int comnum)
 					proccnt++;
 					dat=dat>>data_width;					
 				}
-				if(dat!=0) goto error_p;	//c‚Á‚Ä‚¢‚é‚Ì‚Í•Ï
+				if(dat!=0) goto error_p;	//æ®‹ã£ã¦ã„ã‚‹ã®ã¯å¤‰
 				break;
 			case 5://TDS
 				b[2]=command_define[memadr+comadr];comadr++;
@@ -633,7 +633,7 @@ char Make40bit(int comnum)
 				else {
 					argument=atol(com_data[argnum]);
 				}
-				if(argument==0)goto error_p;	//1 orijin‚È‚Ì‚Å0‚Í•Ï
+				if(argument==0)goto error_p;	//1 orijinãªã®ã§0ã¯å¤‰
 				mm=(unsigned long)b[3]+((unsigned long)b[4]<<8);
 				nn=(unsigned long)b[5]+((unsigned long)b[6]<<8);
 				tds=(argument-1)%(mm+1);
@@ -649,7 +649,7 @@ char Make40bit(int comnum)
 					proccnt++;
 					cnt+=data_width;					
 				}
-				if(tds_chk==0) goto error_p;	//c‚Á‚Ä‚¢‚é‚Ì‚Í•Ï
+				if(tds_chk==0) goto error_p;	//æ®‹ã£ã¦ã„ã‚‹ã®ã¯å¤‰
 				break;
 			case 6://Chip
 				b[2]=command_define[memadr+comadr];comadr++;
@@ -669,7 +669,7 @@ char Make40bit(int comnum)
 				outdat[datadr].dt = (dat & data_mask);
 				datadr++;proccnt++;
 				break;
-			case 7://w’èbit
+			case 7://æŒ‡å®šbit
 				b[2]=command_define[memadr+comadr];comadr++;
 				b[3]=command_define[memadr+comadr];comadr++;
 				b[4]=command_define[memadr+comadr];comadr++;
@@ -711,7 +711,7 @@ char Make40bit(int comnum)
 				outdat[datadr].control=0;
 				outdat[datadr].dt=dat+0x40000000;datadr++;proccnt++;				
 				break;
-			case 0x1f:				//ŒJ‚è•Ô‚µ proccnt•ªƒRƒs[
+			case 0x1f:				//ç¹°ã‚Šè¿”ã— proccntåˆ†ã‚³ãƒ”ãƒ¼
 				b[2]=command_define[memadr+comadr];comadr++;
 				b[3]=command_define[memadr+comadr];comadr++;
 				repeat=(unsigned long)b[2]+((unsigned long)b[3]<<8);
@@ -743,7 +743,7 @@ error_p:
 
 void BINtoHEX(byte dat,char *buf);
 
-//40bit¨fpga
+//40bitâ†’fpga
 //input:outdat,outdat_cnt
 //output:FPGA 
 void fpga_writemem() {
@@ -764,9 +764,9 @@ void fpga_writemem() {
 #endif
 
 	fpga_setadrs(0);
-	//‰Šú’lƒZƒbƒg
+	//åˆæœŸå€¤ã‚»ãƒƒãƒˆ
 	fpga_setdata(copy_bits(out_init), mask);
-	//ƒf[ƒ^ƒZƒbƒg
+	//ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆ
 	for(i = 0; i < outdat_cnt; i++)
 	{
 		unsigned long data = 0;
@@ -778,7 +778,7 @@ void fpga_writemem() {
 			for(j = 0; j < 5; j++) {
 				for(k = 0; k < 8; k++) {
 					if((usepin[pin] & 0x80) != 0) {
-						data |= (d1 & (outdat[i].db[j] >> k)) << pintofpga[pin];  //bit‘€ì
+						data |= (d1 & (outdat[i].db[j] >> k)) << pintofpga[pin];  //bitæ“ä½œ
 					}
 					pin++;
 				}
@@ -797,12 +797,12 @@ void fpga_writemem() {
 		fpga_setdata(data, mask);
 
 	}
-	//I—¹ƒZƒbƒg
+	//çµ‚äº†ã‚»ãƒƒãƒˆ
 	fpga_setdata(0,0x4000000);
 
 }
 
-//2byte HEX‚ğ binary byte‚É•ÏŠ·
+//2byte HEXã‚’ binary byteã«å¤‰æ›
 byte HEXtoBIN(char *buf){
 	byte result;
 	byte b0,b1;
@@ -820,7 +820,7 @@ byte HEXtoBIN(char *buf){
 	return result;
 }
 
-//binary byte‚ğ 2byte HEX‚É•ÏŠ·
+//binary byteã‚’ 2byte HEXã«å¤‰æ›
 void BINtoHEX(byte dat,char *buf){
 	byte b0,b1;
 
@@ -835,7 +835,7 @@ void BINtoHEX(byte dat,char *buf){
 
 }
 
-//long ‚ğascii MAX99999
+//long ã‚’ascii MAX99999
 void LtoA(unsigned long dat,char *buf){
 	unsigned long a,s;
 	if(dat>99999) dat=99999;	//MAX
@@ -959,7 +959,7 @@ unsigned long Ascii2Ulong(char *s)
 		}else if(s[i]>='a' && s[i]<='f'){
 			temp += (s[i] - 87);
 		}else{
-			return 0xffffffff;	// ˆø”ƒ`ƒFƒbƒN‚ÅNG
+			return 0xffffffff;	// å¼•æ•°ãƒã‚§ãƒƒã‚¯ã§NG
 		}
 
 	}

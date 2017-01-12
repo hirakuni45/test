@@ -10,7 +10,7 @@
 //
 // Dependencies			:
 //
-// Additional Comments	:STA2‘Î‰‚©‚ç‚Ù‚Æ‚ñ‚ÇƒfƒbƒhƒRƒs[
+// Additional Comments	:STA2å¯¾å¿œã‹ã‚‰ã»ã¨ã‚“ã©ãƒ‡ãƒƒãƒ‰ã‚³ãƒ”ãƒ¼
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,7 @@
 #include "ck4_gvar.h"
 #include "ck4_uart.h"
 
-//Œ³X C0:TWE C1:SI C2:RSTB C3:START
+//å…ƒã€… C0:TWE C1:SI C2:RSTB C3:START
 
 unsigned int Ascii2Uint(char *);
 void send_UDT_SerialComb (void);
@@ -116,10 +116,10 @@ int serial_proc(void){
 void send_UDT_SerialComb (void){
 	int i, j;
 				DUT_m1 = nDUT-1;			// Dec
-				nGrpNo = DUT_m1/128;		// ƒOƒ‹[ƒvNo
-				bDUT   = DUT_m1%128;		// —]‚è
-				tgLoop = bDUT/16;			// “]‘—ƒ‹[ƒv
-				tgDut <<= (bDUT%16);		// ƒrƒbƒgƒVƒtƒg‰ñ”
+				nGrpNo = DUT_m1/128;		// ã‚°ãƒ«ãƒ¼ãƒ—No
+				bDUT   = DUT_m1%128;		// ä½™ã‚Š
+				tgLoop = bDUT/16;			// è»¢é€ãƒ«ãƒ¼ãƒ—
+				tgDut <<= (bDUT%16);		// ãƒ“ãƒƒãƒˆã‚·ãƒ•ãƒˆå›æ•°
 
 				// Send FPGA Command
 				wData	= m_waCmdFPGA[CMD_NOP];
@@ -503,7 +503,7 @@ unsigned int Ascii2Uint(char *s)
 		}else if(s[i]>='a' && s[i]<='f'){
 			temp += (s[i] - 87);
 		}else{
-			return 65535;	// ˆø”ƒ`ƒFƒbƒN‚ÅNG
+			return 65535;	// å¼•æ•°ãƒã‚§ãƒƒã‚¯ã§NG
 		}
 
 		++i;
