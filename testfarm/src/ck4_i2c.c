@@ -239,8 +239,8 @@ void __attribute__((interrupt, no_auto_psv)) _SI2C1Interrupt(void)
 //eepromからデバイス情報読み出し
 //input:device_no
 
-int get_device_info(void){
-
+int get_device_info(void)
+{
 //	unsigned long eepadr=0;
 	byte h,hn,cn,cm;
 	int i,j,k;
