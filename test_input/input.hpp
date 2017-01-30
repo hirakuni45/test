@@ -7,9 +7,12 @@
     @author 平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
+#include <cstdint>
 
 extern "C" {
+
 	char sci_getch(void);
+
 };
 
 namespace utils {
@@ -21,11 +24,24 @@ namespace utils {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	struct def_chainp {
 		const char* str_;
-		def_chainp(const char* str) : str_(str) { }
+		uint32_t	cnt_;
+		def_chainp(const char* str = nullptr) : str_(str), cnt_(0) { }
+
+		void prev() {
+			if(cnt_ > 0) {
+				--cnt_;
+				--str_;
+			}
+		}
 
 		char operator() () {
-			if(str_ == nullptr) sci_getch();
-			return *str_++;
+			if(str_ == nullptr) {
+				return sci_getch();
+			} else {
+				auto ch = *str_;
+				if(ch != 0) { ++str_; ++cnt_; }
+				return ch;
+			}
 		}
 	};
 
@@ -43,21 +59,95 @@ namespace utils {
 
 		INP		inp_;
 
-		char	last_;
+		uint32_t bin_() {
+			uint32_t a = 0;
+			char ch;
+			while((ch = inp_()) != 0 && ch >= '0' && ch <= '1') {
+				a <<= 1;
+				a += ch - '0';
+			}
+			return a;
+		}
 
-		int32_t dec_() {
-			int32_t a = 0;
-			while(1) {
-				char ch = inp_();
+		uint32_t oct_() {
+			uint32_t a = 0;
+			char ch;
+			while((ch = inp_()) != 0 && ch >= '0' && ch <= '7') {
+				a <<= 3;
+				a += ch - '0';
+			}
+			return a;
+		}
+
+		uint32_t dec_() {
+			uint32_t a = 0;
+			char ch;
+			while((ch = inp_()) != 0 && ch >= '0' && ch <= '9') {
+				a *= 10;
+				a += ch - '0';
+			}
+			return a;
+		}
+
+		uint32_t hex_() {
+			uint32_t a = 0;
+			char ch;
+			while((ch = inp_()) != 0) {
 				if(ch >= '0' && ch <= '9') {
-					a *= 10;
+					a <<= 4;
 					a += ch - '0';
+				} else if(ch >= 'A' && ch <= 'F') {
+					a <<= 4;
+					a += ch - 'A' + 10;
+				} else if(ch >= 'a' && ch <= 'f') {
+					a <<= 4;
+					a += ch - 'a' + 10;
 				} else {
-					last_ = ch;
 					break;
 				}
 			}
 			return a;
+		}
+
+		enum class mode : uint8_t {
+			NONE,
+			BIN,
+			OCT,
+			DEC,
+			HEX,
+		};
+		mode	mode_;
+		bool	err_;
+
+		void next_()
+		{
+			bool ena = false;
+			char ch;
+			while((ch = *form_++) != 0) {
+				if(ena) {
+					if(ch == 'b' || ch == 'B') {
+						mode_ = mode::BIN;
+						return;
+					} else if(ch == 'o' || ch == 'O') {
+						mode_ = mode::OCT;
+						return;
+					} else if(ch == 'd' || ch == 'D') {
+						mode_ = mode::DEC;
+						return;
+					} else if(ch == 'x' || ch == 'X') {
+						mode_ = mode::HEX;
+						return;
+					} else {
+						err_ = true;
+					}
+				} else {
+					if(ch == '%' && *form_ != '%') ena = true;
+					else if(ch != inp_()) {
+						err_ = true;
+						return;
+					}
+				}
+			}
 		}
 
 	public:
@@ -66,8 +156,10 @@ namespace utils {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		basic_input(const char* form, const char* inp = nullptr) : form_(form), inp_(inp), last_(0)
+		basic_input(const char* form, const char* inp = nullptr) : form_(form), inp_(inp),
+			mode_(mode::NONE), err_(false)
 		{
+			next_();
 		}
 
 
@@ -78,13 +170,34 @@ namespace utils {
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		basic_input& operator % (int& val) {
-
-			val = dec_();
+		basic_input& operator % (int& val)
+		{
+			switch(mode_) {
+			case mode::BIN:
+				val = bin_();
+				inp_.prev();
+				next_();
+				break;
+			case mode::OCT:
+				val = oct_();
+				inp_.prev();
+				next_();
+				break;
+			case mode::DEC:
+				val = dec_();
+				inp_.prev();
+				next_();
+				break;
+			case mode::HEX:
+				val = hex_();
+				inp_.prev();
+				next_();
+				break;
+			default:
+				break;
+			}
 			return *this;
 		}
-
-
 	};
 
 	typedef basic_input<def_chainp> input;

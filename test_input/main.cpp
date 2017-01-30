@@ -21,10 +21,12 @@ int main(int argc, char* argv[])
 
 
 	int a;
+	int b;
 
-	input("%d", "99") % a;
+	input("%d,%x", "99,100") % a % b;
 
 
-	std::cout << a << std::endl;
+	std::cout << a << ", " << b << std::endl;
+
 
 }
