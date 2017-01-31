@@ -22,26 +22,29 @@ namespace utils {
 		@brief  標準入力ファンクタ
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct def_chainp {
+	class def_chainp {
 		const char* str_;
-		uint32_t	cnt_;
-		def_chainp(const char* str = nullptr) : str_(str), cnt_(0) { }
+		char		last_;
+		bool		unget_;
+	public:
+		def_chainp(const char* str = nullptr) : str_(str), last_(0), unget_(false) { }
 
-		void prev() {
-			if(cnt_ > 0) {
-				--cnt_;
-				--str_;
-			}
+		void unget() {
+			unget_ = true;
 		}
 
 		char operator() () {
-			if(str_ == nullptr) {
-				return sci_getch();
+			if(unget_) {
+				unget_ = false;
 			} else {
-				auto ch = *str_;
-				if(ch != 0) { ++str_; ++cnt_; }
-				return ch;
+				if(str_ == nullptr) {
+					last_ = sci_getch();
+				} else {
+					last_ = *str_;
+					if(last_ != 0) { ++str_; }
+				}
 			}
+			return last_;
 		}
 	};
 
@@ -57,7 +60,7 @@ namespace utils {
 
 		const char*	form_;
 
-		INP		inp_;
+		INP			inp_;
 
 		uint32_t bin_() {
 			uint32_t a = 0;
@@ -119,33 +122,53 @@ namespace utils {
 		mode	mode_;
 		bool	err_;
 
+		static uint16_t	cnvcnt_;
+
+		enum class fmm : uint8_t {
+			none,
+			type,
+
+		};
+
 		void next_()
 		{
-			bool ena = false;
+			fmm cm = fmm::none;
 			char ch;
 			while((ch = *form_++) != 0) {
-				if(ena) {
+				switch(cm) {
+				case fmm::none:
+					if(ch == '[') {
+						auto a = inp_();
+						const char* p = form_;
+						bool ok = false;
+						while((ch = *p++) != 0 && ch != ']') {
+							if(ch == a) ok = true;
+						}
+						form_ = p;
+						if(!ok) {
+							err_ = true;
+							return;
+						}
+					} else if(ch == '%' && *form_ != '%') {
+						cm = fmm::type;
+					} else if(ch != inp_()) {
+						err_ = true;
+						return;
+					}
+					break;
+				case fmm::type:
 					if(ch == 'b' || ch == 'B') {
 						mode_ = mode::BIN;
-						return;
 					} else if(ch == 'o' || ch == 'O') {
 						mode_ = mode::OCT;
-						return;
 					} else if(ch == 'd' || ch == 'D') {
 						mode_ = mode::DEC;
-						return;
 					} else if(ch == 'x' || ch == 'X') {
 						mode_ = mode::HEX;
-						return;
 					} else {
 						err_ = true;
 					}
-				} else {
-					if(ch == '%' && *form_ != '%') ena = true;
-					else if(ch != inp_()) {
-						err_ = true;
-						return;
-					}
+					return;
 				}
 			}
 		}
@@ -154,51 +177,114 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  コンストラクター
+			@param[in]	form	入力形式
+			@param[in]	inp		変換文字列（nullptrの場合、sci_getch で取得）
 		*/
 		//-----------------------------------------------------------------//
 		basic_input(const char* form, const char* inp = nullptr) : form_(form), inp_(inp),
 			mode_(mode::NONE), err_(false)
 		{
+			cnvcnt_ = 0;
 			next_();
 		}
 
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  オペレーター「%」（int）
+			@brief  正常変換数を取得
+			@return 正常変換数
+		*/
+		//-----------------------------------------------------------------//
+		static uint16_t get_conversion() { return cnvcnt_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  オペレーター「%」（int32_t）
 			@param[in]	val	整数値
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		basic_input& operator % (int& val)
+		basic_input& operator % (int32_t& val)
 		{
+			if(err_) return *this;
+
+			bool neg = false;
+			{
+				auto s = inp_();
+				if(s == '-') { neg = true; }
+				else if(s == '+') { neg = false; }
+				else inp_.unget();
+			}
+			uint32_t v;
 			switch(mode_) {
 			case mode::BIN:
-				val = bin_();
-				inp_.prev();
-				next_();
+				v = bin_();
 				break;
 			case mode::OCT:
-				val = oct_();
-				inp_.prev();
-				next_();
+				v = oct_();
 				break;
 			case mode::DEC:
-				val = dec_();
-				inp_.prev();
-				next_();
+				v = dec_();
 				break;
 			case mode::HEX:
-				val = hex_();
-				inp_.prev();
-				next_();
+				v = hex_();
 				break;
 			default:
+				err_ = true;
 				break;
+			}
+			if(neg) val = -static_cast<int>(v);
+			else val = static_cast<int>(v);
+			if(!err_) {
+				++cnvcnt_;
+				inp_.unget();
+				next_();
+			}
+			return *this;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  オペレーター「%」（uint32_t）
+			@param[in]	val	整数値
+			@return	自分の参照
+		*/
+		//-----------------------------------------------------------------//
+		basic_input& operator % (uint32_t& val)
+		{
+			if(err_) return *this;
+
+			uint32_t v;
+			switch(mode_) {
+			case mode::BIN:
+				v = bin_();
+				break;
+			case mode::OCT:
+				v = oct_();
+				break;
+			case mode::DEC:
+				v = dec_();
+				break;
+			case mode::HEX:
+				v = hex_();
+				break;
+			default:
+				err_ = true;
+				break;
+			}
+			if(!err_) {
+				++cnvcnt_;
+				inp_.unget();
+				next_();
+				val = v;
 			}
 			return *this;
 		}
 	};
+
+	template<class INP> uint16_t basic_input<INP>::cnvcnt_;
 
 	typedef basic_input<def_chainp> input;
 

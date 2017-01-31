@@ -21,12 +21,12 @@ int main(int argc, char* argv[])
 
 
 	int a;
-	int b;
+	uint32_t b;
 
-	input("%d,%x", "99,100") % a % b;
-
+	input("%d[, ]%x", "-99 100") % a % b;
 
 	std::cout << a << ", " << b << std::endl;
 
-
+	auto n = input::get_conversion();
+	std::cout << "N: " << n << std::endl;
 }
