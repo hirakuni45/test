@@ -1,0 +1,5 @@
+*~
+*.[ao]
+*.pre
+release/
+*/*/*.exe
