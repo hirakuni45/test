@@ -26,8 +26,12 @@ int main(int argc, char* argv[])
 	std::cout << "1ST: " << a << ", 2ND: " << b << std::endl;
 #endif
 	float a;
+	int b;
+	uint32_t c;
 
-	auto n = (input("%f", "101.945") % a).num();
+	auto n = (input("%f,%d,%x", "101.945,-76,7ff") % a % b % c).num();
 	std::cout << "Num: " << n << std::endl;
-	std::cout << "Ans: " << a << std::endl;
+	std::cout << "1ST: " << a << std::endl;
+	std::cout << "2ND: " << b << std::endl;
+	std::cout << "3RD: " << c << std::endl;
 }
