@@ -7,7 +7,7 @@
     @author 平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include <cstdint>
+#include <type_traits>
 
 extern "C" {
 
@@ -112,17 +112,46 @@ namespace utils {
 			return a;
 		}
 
+
+		float real_() {
+			uint32_t a = 0;
+			uint32_t b = 0;
+			uint32_t c = 1;
+			char ch;
+			bool p = false;
+			while((ch = inp_()) != 0) {
+				if(ch >= '0' && ch <= '9') {
+					a *= 10;
+					a += ch - '0';
+					c *= 10;
+				} else if(ch == '.') {
+					b = a;
+					a = 0;
+					c = 1;
+					p = true;
+				} else {
+					break;
+				}
+			}
+			if(p) {
+				return static_cast<float>(b) + static_cast<float>(a) / static_cast<float>(c);
+			} else {
+				return static_cast<float>(a); 
+			}
+		}
+
 		enum class mode : uint8_t {
 			NONE,
 			BIN,
 			OCT,
 			DEC,
 			HEX,
+			FLOAT,
 		};
 		mode	mode_;
 		bool	err_;
 
-		static uint16_t	cnvcnt_;
+		int		num_;
 
 		enum class fmm : uint8_t {
 			none,
@@ -156,21 +185,94 @@ namespace utils {
 						return;
 					}
 					break;
+
 				case fmm::type:
-					if(ch == 'b' || ch == 'B') {
+					if(ch >= 0x60) ch -= 0x20;
+					if(ch == 'B') {
 						mode_ = mode::BIN;
-					} else if(ch == 'o' || ch == 'O') {
+					} else if(ch == 'O') {
 						mode_ = mode::OCT;
-					} else if(ch == 'd' || ch == 'D') {
+					} else if(ch == 'D') {
 						mode_ = mode::DEC;
-					} else if(ch == 'x' || ch == 'X') {
+					} else if(ch == 'X') {
 						mode_ = mode::HEX;
+					} else if(ch == 'F') {
+						mode_ = mode::FLOAT;
 					} else {
 						err_ = true;
 					}
 					return;
 				}
 			}
+			if(ch == 0 && inp_() == 0) ;
+			else {
+				err_ = true;
+			}
+		}
+
+
+		bool neg_() {
+			bool neg = false;
+			auto s = inp_();
+			if(s == '-') { neg = true; }
+			else if(s == '+') { neg = false; }
+			else inp_.unget();
+			return neg;
+		}
+
+
+		int32_t nb_int_(bool sign = true)
+		{
+			auto neg = neg_();
+
+			uint32_t v = 0;
+			switch(mode_) {
+			case mode::BIN:
+				v = bin_();
+				break;
+			case mode::OCT:
+				v = oct_();
+				break;
+			case mode::DEC:
+				v = dec_();
+				break;
+			case mode::HEX:
+				v = hex_();
+				break;
+			default:
+				err_ = true;
+				break;
+			}
+			if(!err_) {
+				inp_.unget();
+				next_();
+				if(!err_) ++num_;
+			}
+			if(sign && neg) return -static_cast<int32_t>(v);
+			else return static_cast<int32_t>(v);
+		}
+
+
+		float nb_real_()
+		{
+			bool neg = neg_();
+
+			float v = 0.0f;
+			switch(mode_) {
+			case mode::FLOAT:
+				v = real_();
+				break;
+			default:
+				err_ = true;
+				break;
+			}
+			if(!err_) {
+				inp_.unget();
+				next_();
+				if(!err_) ++num_;
+			}
+			if(neg) return -v;
+			else return v;			
 		}
 
 	public:
@@ -182,9 +284,8 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		basic_input(const char* form, const char* inp = nullptr) : form_(form), inp_(inp),
-			mode_(mode::NONE), err_(false)
+			mode_(mode::NONE), err_(false), num_(0)
 		{
-			cnvcnt_ = 0;
 			next_();
 		}
 
@@ -195,51 +296,25 @@ namespace utils {
 			@return 正常変換数
 		*/
 		//-----------------------------------------------------------------//
-		static uint16_t get_conversion() { return cnvcnt_; }
+		int num() const { return num_; }
 
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  オペレーター「%」（int32_t）
-			@param[in]	val	整数値
+			@brief  テンプレート・オペレーター「%」
+			@param[in]	val	整数型
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		basic_input& operator % (int32_t& val)
+		template <typename T>
+		basic_input& operator % (T& val)
 		{
 			if(err_) return *this;
 
-			bool neg = false;
-			{
-				auto s = inp_();
-				if(s == '-') { neg = true; }
-				else if(s == '+') { neg = false; }
-				else inp_.unget();
-			}
-			uint32_t v;
-			switch(mode_) {
-			case mode::BIN:
-				v = bin_();
-				break;
-			case mode::OCT:
-				v = oct_();
-				break;
-			case mode::DEC:
-				v = dec_();
-				break;
-			case mode::HEX:
-				v = hex_();
-				break;
-			default:
-				err_ = true;
-				break;
-			}
-			if(neg) val = -static_cast<int>(v);
-			else val = static_cast<int>(v);
-			if(!err_) {
-				++cnvcnt_;
-				inp_.unget();
-				next_();
+			if(std::is_floating_point<T>::value) {
+				val = nb_real_();
+			} else {
+				val = nb_int_(std::is_signed<T>::value);
 			}
 			return *this;
 		}
@@ -247,45 +322,11 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  オペレーター「%」（uint32_t）
-			@param[in]	val	整数値
-			@return	自分の参照
+			@brief  オペレーター「=」
 		*/
 		//-----------------------------------------------------------------//
-		basic_input& operator % (uint32_t& val)
-		{
-			if(err_) return *this;
-
-			uint32_t v;
-			switch(mode_) {
-			case mode::BIN:
-				v = bin_();
-				break;
-			case mode::OCT:
-				v = oct_();
-				break;
-			case mode::DEC:
-				v = dec_();
-				break;
-			case mode::HEX:
-				v = hex_();
-				break;
-			default:
-				err_ = true;
-				break;
-			}
-			if(!err_) {
-				++cnvcnt_;
-				inp_.unget();
-				next_();
-				val = v;
-			}
-			return *this;
-		}
+		basic_input& operator = (const basic_input& in) { return *this; }
 	};
 
-	template<class INP> uint16_t basic_input<INP>::cnvcnt_;
-
 	typedef basic_input<def_chainp> input;
-
 }
