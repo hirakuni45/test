@@ -85,7 +85,7 @@ namespace utils {
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		enum class error : uint8_t {
 			none,			///< エラー無し
-			syntax,			///< 正規表現の不一致
+			cha_sets,		///< 文字セットの不一致
 			partition,		///< 仕切りキャラクターの不一致
 			input_type,		///< 無効な入力タイプ
 			not_integer,	///< 整数の不一致
@@ -93,6 +93,7 @@ namespace utils {
 			terminate,		///< 終端文字の不一致
 		};
 
+	private:
 		const char*	form_;
 
 		INP			inp_;
@@ -208,7 +209,7 @@ namespace utils {
 						}
 						form_ = p;
 						if(!ok) {
-							error_ = error::syntax;
+							error_ = error::cha_sets;
 							return;
 						}
 					} else if(ch == '%' && *form_ != '%') {
