@@ -2,18 +2,20 @@
 //=====================================================================//
 /*! @file
     @brief  input クラス @n
-			数値、文字列などの入力クラス
+			数値、文字列などの入力クラス @n
+			%b ---> ２進の数値 @n
+			%o ---> ８進の数値 @n
+			%d ---> １０進の数値 @n
+			%x ---> １６進の数値 @n
+			%f ---> 浮動小数点数（float、double） @n
+			%c ---> １文字のキャラクター @n
+			%% ---> '%' のキャラクター
 			Copyright 2017 Kunihito Hiramatsu
     @author 平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
 #include <type_traits>
-
-extern "C" {
-
-	char sci_getch(void);
-
-};
+#include <unistd.h>
 
 namespace utils {
 
@@ -57,7 +59,9 @@ namespace utils {
 				unget_ = false;
 			} else {
 				if(str_ == nullptr) {
-					last_ = sci_getch();
+					if(read(0, &last_, 1) != 1) {
+						last_ = 0;
+					}
 				} else {
 					last_ = *str_;
 					if(last_ != 0) { ++str_; }
@@ -104,7 +108,8 @@ namespace utils {
 			OCT,
 			DEC,
 			HEX,
-			FLOAT,
+			REAL,
+			CHA,
 		};
 		mode	mode_;
 		error	error_;
@@ -223,19 +228,28 @@ namespace utils {
 					break;
 
 				case fmm::type:
-					if(ch >= 0x60) ch -= 0x20;
-					if(ch == 'B') {
+					switch(ch) {
+					case 'b':
 						mode_ = mode::BIN;
-					} else if(ch == 'O') {
+						break;
+					case 'o':
 						mode_ = mode::OCT;
-					} else if(ch == 'D') {
+						break;
+					case 'd':
 						mode_ = mode::DEC;
-					} else if(ch == 'X') {
+						break;
+					case 'x':
 						mode_ = mode::HEX;
-					} else if(ch == 'F') {
-						mode_ = mode::FLOAT;
-					} else {
+						break;
+					case 'f':
+						mode_ = mode::REAL;
+						break;
+					case 'c':
+						mode_ = mode::CHA;
+						break;
+					default:
 						error_ = error::input_type;
+						break;
 					}
 					return;
 				}
@@ -296,7 +310,7 @@ namespace utils {
 
 			T v = 0.0f;
 			switch(mode_) {
-			case mode::FLOAT:
+			case mode::REAL:
 				v = real_<T>();
 				break;
 			default:
@@ -369,7 +383,12 @@ namespace utils {
 			if(std::is_floating_point<T>::value) {
 				val = nb_real_<T>();
 			} else {
-				val = nb_int_(std::is_signed<T>::value);
+				if(mode_ == mode::CHA) {
+					val = inp_();
+					next_();
+				} else {
+					val = nb_int_(std::is_signed<T>::value);
+				}
 			}
 			return *this;
 		}
