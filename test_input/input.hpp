@@ -161,7 +161,8 @@ namespace utils {
 		}
 
 
-		float real_() {
+		template<typename T>
+		T real_() {
 			uint32_t a = 0;
 			uint32_t b = 0;
 			uint32_t c = 1;
@@ -182,11 +183,12 @@ namespace utils {
 				}
 			}
 			if(p) {
-				return static_cast<float>(b) + static_cast<float>(a) / static_cast<float>(c);
+				return static_cast<T>(b) + static_cast<T>(a) / static_cast<T>(c);
 			} else {
-				return static_cast<float>(a); 
+				return static_cast<T>(a); 
 			}
 		}
+
 
 		void next_()
 		{
@@ -287,14 +289,15 @@ namespace utils {
 		}
 
 
-		float nb_real_()
+		template <typename T>
+		T nb_real_()
 		{
 			bool neg = neg_();
 
-			float v = 0.0f;
+			T v = 0.0f;
 			switch(mode_) {
 			case mode::FLOAT:
-				v = real_();
+				v = real_<T>();
 				break;
 			default:
 				error_ = error::not_float;
@@ -364,7 +367,7 @@ namespace utils {
 			if(error_ != error::none) return *this;
 
 			if(std::is_floating_point<T>::value) {
-				val = nb_real_();
+				val = nb_real_<T>();
 			} else {
 				val = nb_int_(std::is_signed<T>::value);
 			}
