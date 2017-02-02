@@ -7,12 +7,13 @@ int main(int argc, char* argv[]);
 int main(int argc, char* argv[])
 {
 	using namespace utils;
-#if 0
+#if 1
 	int a;
-	if((input("%d") % a).status()) {
+	auto err = (input("%d") % a).error();
+	if(err == input::error::none) {
 		std::cout << "Input: " << a << std::endl;
 	} else {
-		std::cout << "Input error" << std::endl;
+		std::cout << "Input error: " << static_cast<int>(err) << std::endl;
 	}
 #endif
 
@@ -26,7 +27,7 @@ int main(int argc, char* argv[])
 	std::cout << "1ST: " << a << ", 2ND: " << b << std::endl;
 #endif
 
-#if 1
+#if 0
 	float a;
 	int b;
 	uint32_t c;

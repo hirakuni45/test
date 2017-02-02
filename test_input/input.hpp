@@ -59,7 +59,11 @@ namespace utils {
 				unget_ = false;
 			} else {
 				if(str_ == nullptr) {
-					if(read(0, &last_, 1) != 1) {
+					char ch;
+					if(read(0, &ch, 1) == 1) {
+						if(ch == '\n') ch = 0;
+						last_ = ch;
+					} else {
 						last_ = 0;
 					}
 				} else {
