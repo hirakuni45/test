@@ -16,8 +16,6 @@
 #include <type_traits>
 #include <unistd.h>
 
-/// ８進数のサポート
-/// #define WITH_OCTAL_FORMAT
 /// 浮動小数点(float)のサポート
 #define WITH_FLOAT_FORMAT
 /// 浮動小数点(double)のサポート
@@ -92,9 +90,7 @@ namespace utils {
 			CHA,		///< 文字
 			STR,		///< 文字列
 			BINARY,		///< ２進
-#ifdef WITH_OCTAL_FORMAT
 			OCTAL,		///< ８進
-#endif
 			DECIMAL,	///< １０進
 			U_DECIMAL,	///< １０進（符号無し）
 			HEX_CAPS,	///< １６進（大文字）
@@ -182,11 +178,9 @@ namespace utils {
 					} else if(ch == 'b') {
 						mode_ = mode::BINARY;
 						return;
-#ifdef WITH_OCTAL_FORMAT
 					} else if(ch == 'o') {
 						mode_ = mode::OCTAL;
 						return;
-#endif
 					} else if(ch == 'd') {
 						mode_ = mode::DECIMAL;
 						return;
@@ -264,7 +258,6 @@ namespace utils {
 			out_str_(p, '+', n);
 		}
 
-#ifdef WITH_OCTAL_FORMAT
 		void out_oct_(int32_t v) {
 			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
@@ -277,7 +270,6 @@ namespace utils {
 			} while(v != 0) ;
 			out_str_(p, '+', n);
 		}
-#endif
 
 		void out_udec_(uint32_t v, char sign) {
 			char* p = &buff_[sizeof(buff_) - 1];
@@ -444,11 +436,9 @@ namespace utils {
 			case mode::BINARY:
 				out_bin_(val);
 				break;
-#ifdef WITH_OCTAL_FORMAT
 			case mode::OCTAL:
 				out_oct_(val);
 				break;
-#endif
 			case mode::DECIMAL:
 				out_dec_(val);
 				break;
@@ -484,11 +474,9 @@ namespace utils {
 			case mode::BINARY:
 				out_bin_(val);
 				break;
-#ifdef WITH_OCTAL_FORMAT
 			case mode::OCTAL:
 				out_oct_(val);
 				break;
-#endif
 			case mode::DECIMAL:
 				out_dec_(val);
 				break;
