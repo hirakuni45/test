@@ -2,4 +2,4 @@
 *.[ao]
 *.pre
 release/
-*/*/*.exe
+*.exe
