@@ -16,11 +16,6 @@
 #include <type_traits>
 #include <unistd.h>
 
-/// 浮動小数点(float)のサポート
-#define WITH_FLOAT_FORMAT
-/// 浮動小数点(double)のサポート
-/// #define WITH_DOUBLE_FORMAT
-
 /* 
   e, E
      double 引き数を丸めて [-]d.ddde±dd の形に変換する。 小数点の前には一桁の数字があり、
@@ -96,12 +91,10 @@ namespace utils {
 			HEX_CAPS,	///< １６進（大文字）
 			HEX,		///< １６進（小文字）
 			FIXED_REAL,	///< 固定小数点
-#if defined(WITH_FLOAT_FORMAT) | defined(WITH_DOUBLE_FORMAT)
 			REAL,		///< 浮動小数点
 			EXPONENT_CAPS,	///< 浮動小数点 exp 形式(E)
 			EXPONENT,	///< 浮動小数点 exp 形式(e)
 			REAL_AUTO,	///< 浮動小数点自動
-#endif
 			NONE		///< 不明
 		};
 
@@ -196,7 +189,6 @@ namespace utils {
 					} else if(ch == 'y') {
 						mode_ = mode::FIXED_REAL;
 						return;
-#if defined(WITH_FLOAT_FORMAT) | defined(WITH_DOUBLE_FORMAT)
 					} else if(ch == 'f' || ch == 'F') {
 						mode_ = mode::REAL;
 						return;
@@ -209,7 +201,6 @@ namespace utils {
 					} else if(ch == 'g' || ch == 'G') {
 						mode_ = mode::REAL_AUTO;
 						return;
-#endif
 					} else if(ch == '%') {
 						chaout_(ch);
 						md = apmd::none;
@@ -226,6 +217,7 @@ namespace utils {
 				}
 			}
 		}
+
 
 		void out_str_(const char* str, char sign, uint8_t n) {
 			if(zerosupp_) {
@@ -245,6 +237,7 @@ namespace utils {
 			str_(str);
 		}
 
+
 		void out_bin_(int32_t v) {
 			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
@@ -258,6 +251,7 @@ namespace utils {
 			out_str_(p, '+', n);
 		}
 
+
 		void out_oct_(int32_t v) {
 			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
@@ -270,6 +264,7 @@ namespace utils {
 			} while(v != 0) ;
 			out_str_(p, '+', n);
 		}
+
 
 		void out_udec_(uint32_t v, char sign) {
 			char* p = &buff_[sizeof(buff_) - 1];
@@ -308,6 +303,42 @@ namespace utils {
 			} while(v != 0) ;
 			out_str_(p, 0, n);
 		}
+
+
+		void decimal_(int32_t val, bool sign) {
+			switch(mode_) {
+			case mode::BINARY:
+				out_bin_(val);
+				break;
+			case mode::OCTAL:
+				out_oct_(val);
+				break;
+			case mode::DECIMAL:
+				out_dec_(val);
+				break;
+			case mode::U_DECIMAL:
+				out_udec_(val, sign_ ? '+' : 0);
+				break;
+			case mode::HEX:
+				out_hex_(static_cast<uint32_t>(val), 'a');
+				break;
+			case mode::HEX_CAPS:
+				out_hex_(static_cast<uint32_t>(val), 'A');
+				break;
+			case mode::FIXED_REAL:
+				if(num_ == 0) num_ = 6;
+				if(val < 0) {
+					sign = true;
+					val = -val;
+				}
+				out_fixed_point_<uint64_t>(val, bitlen_, sign);
+				break;
+			default:
+				error_ = error::different;
+				break;
+			}
+		}
+
 
 		uint64_t make_mask_(uint8_t num) {
 			uint64_t m = 0;
@@ -369,7 +400,7 @@ namespace utils {
 			}
 		}
 
-#ifdef WITH_FLOAT_FORMAT
+
 		void out_real_(float v, char e) {
 			void* p = &v;
 			uint32_t fpv = *(uint32_t*)p;
@@ -423,87 +454,6 @@ namespace utils {
 				out_dec_(dexp);
 			}
 		}
-#endif
-
-#ifdef WITH_DOUBLE_FORMAT
-		void out_real_(double val, char e) {
-		}
-#endif
-
-		void sign_int_(int32_t val) {
-			bool sign = false;
-			switch(mode_) {
-			case mode::BINARY:
-				out_bin_(val);
-				break;
-			case mode::OCTAL:
-				out_oct_(val);
-				break;
-			case mode::DECIMAL:
-				out_dec_(val);
-				break;
-			case mode::HEX:
-				out_hex_(static_cast<uint32_t>(val), 'a');
-				break;
-			case mode::HEX_CAPS:
-				out_hex_(static_cast<uint32_t>(val), 'A');
-				break;
-			case mode::FIXED_REAL:
-				if(num_ == 0) num_ = 6;
-				if(val < 0) {
-					sign = true;
-					val = -val;
-				}
-#ifdef WITH_FLOAT_FORMAT
-				out_fixed_point_<uint64_t>(val, bitlen_, sign);
-#else
-				out_fixed_point_<uint32_t>(val, bitlen_, sign);
-#endif
-				break;
-			default:
-				error_ = error::different;
-				break;
-			}
-			reset_();
-			next_();
-		}
-
-
-		void unsign_int_(uint32_t val) {
-			switch(mode_) {
-			case mode::BINARY:
-				out_bin_(val);
-				break;
-			case mode::OCTAL:
-				out_oct_(val);
-				break;
-			case mode::DECIMAL:
-				out_dec_(val);
-				break;
-			case mode::U_DECIMAL:
-				out_udec_(val, sign_ ? '+' : 0);
-				break;
-			case mode::HEX:
-				out_hex_(val, 'a');
-				break;
-			case mode::HEX_CAPS:
-				out_hex_(val, 'A');
-				break;
-			case mode::FIXED_REAL:
-				if(num_ == 0) num_ = 6;
-#ifdef WITH_FLOAT_FORMAT
-				out_fixed_point_<uint64_t>(val, bitlen_, false);
-#else
-				out_fixed_point_<uint32_t>(val, bitlen_, false);
-#endif
-				break;
-			default:
-				error_ = error::different;
-				break;
-			}
-			reset_();
-			next_();
-		}
 
 	public:
 		//-----------------------------------------------------------------//
@@ -520,11 +470,11 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  エラーを返す
+			@brief  エラー種別を返す
 			@return エラー
 		*/
 		//-----------------------------------------------------------------//
-		error error() const { return error_; }
+		error get_error() const { return error_; }
 
 
 		//-----------------------------------------------------------------//
@@ -538,31 +488,17 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  オペレーター「%」
-			@param[in]	val	文字
+			@brief  オペレーター「%」(const char*)
+			@param[in]	val	値
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		basic_format& operator % (char val) {
-			if(mode_ == mode::CHA) {
-				chaout_(val);
-			} else {
-				error_ = error::different;
+		basic_format& operator % (const char* val)
+		{
+			if(error_ != error::none) {
+				return *this;
 			}
-			reset_();
-			next_();
-			return *this;
-		}
 
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」
-			@param[in]	val	文字列
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (const char* val) {
 			if(mode_ == mode::STR) {
 				zerosupp_ = false;
 				uint8_t n = 0;
@@ -572,154 +508,63 @@ namespace utils {
 			} else {
 				error_ = error::different;
 			}
+
 			reset_();
 			next_();
 			return *this;
 		}
 
 
-#if 0
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」（int）
-			@param[in]	val	整数値
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (int val) {
-			sign_int_(static_cast<int32_t>(val));
-			return *this;
-		}
-#endif
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」（int16_t）
-			@param[in]	val	整数値
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (int16_t val) {
-			sign_int_(static_cast<int32_t>(val));
-			return *this;
-		}
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」int32_t
-			@param[in]	val	整数値
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (int32_t val) {
-			sign_int_(val);
-			return *this;
-		}
-
-
-#if 0
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」（unsigned int）
-			@param[in]	val	符号無し整数値
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (unsigned int val) {
-			unsign_int_(static_cast<uint32_t>(val));
-			return *this;
-		}
-#endif
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」（uint16_t）
-			@param[in]	val	符号無し整数値
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (uint16_t val) {
-			unsign_int_(static_cast<uint32_t>(val));
-			return *this;
-		}
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」（UINT）
-			@param[in]	val	符号無し整数値
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (uint32_t val) {
-			unsign_int_(static_cast<uint32_t>(val));
-			return *this;
-		}
-
-
-#ifdef WITH_FLOAT_FORMAT
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  オペレーター「%」
-			@param[in]	val	浮動小数点(float)
+			@param[in]	val	値
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		basic_format& operator % (float val) {
-			if(num_ == 0 && !zerosupp_ && point_ == 0) {
-				num_ = 6;
-				point_ = 6;
+		template <typename T>
+		basic_format& operator % (T val)
+		{
+			if(error_ != error::none) {
+				return *this;
 			}
-			switch(mode_) {
-			case mode::REAL:
-				out_real_(val, 0);
-				break;
-			case mode::EXPONENT_CAPS:
-				out_real_(val, 'E');
-				break;
-			case mode::EXPONENT:
-				out_real_(val, 'e');
-				break;
-			case mode::REAL_AUTO:
-				out_real_(val, 0);
-				break;
-			default:
-				error_ = error::different;
-				break;
-			}
-			reset_();
-			next_();
-			return *this;
-		}
-#endif
 
-#ifdef WITH_DOUBLE_FORMAT
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  オペレーター「%」
-			@param[in]	val	浮動小数点(double)
-			@return	自分の参照
-		*/
-		//-----------------------------------------------------------------//
-		basic_format& operator % (double val) {
-			if(num_ == 0 && !zerosupp_) num_ = 6;
-			if(mode_ == mode::REAL) {
-				out_real_(val, 0);
-			} else if(mode_ == mode::EXPONENT_CAPS) {
-				out_real_(val, 'E');
-			} else if(mode_ == mode::EXPONENT) {
-				out_exp_(val, 'e');
-			} else if(mode_ == mode::REAL_AUTO) {
-				out_real_auto_(val, 0);
+			if(std::is_integral<T>::value) {
+				if(mode_ == mode::CHA && sizeof(T) == 1) {
+					chaout_(val);
+				} else {
+					decimal_(static_cast<int32_t>(val), std::is_signed<T>::value);
+				}
+			} else if(std::is_floating_point<T>::value) {
+				if(num_ == 0 && !zerosupp_ && point_ == 0) {
+					num_ = 6;
+					point_ = 6;
+				}
+				switch(mode_) {
+				case mode::REAL:
+					out_real_(val, 0);
+					break;
+				case mode::EXPONENT_CAPS:
+					out_real_(val, 'E');
+					break;
+				case mode::EXPONENT:
+					out_real_(val, 'e');
+					break;
+				case mode::REAL_AUTO:
+					out_real_(val, 0);
+					break;
+				default:
+					error_ = error::different;
+					break;
+				}
 			} else {
-				error_ = error::different;
+				error_ = error::unknown;
 			}
+
 			reset_();
 			next_();
 			return *this;
 		}
-#endif
 	};
 
 	typedef basic_format<def_chaout> format;
