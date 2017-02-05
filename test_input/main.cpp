@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 	using namespace utils;
 #if 1
 	int a;
-	auto err = (input("%d") % a).error();
+	auto err = (input("%d") % a).get_error();
 	if(err == input::error::none) {
 		std::cout << "Input: " << a << std::endl;
 	} else {
