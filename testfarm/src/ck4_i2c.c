@@ -281,42 +281,52 @@ int get_device_info(void)
 
 	fpga_serial(0,0,0);
 
-	eepadr=0;
+	eepadr = 0;
 
-	eepadr+=16;
-	h=read_eeprom(eepadr);eepadr++;
-	if(h>64){
+	eepadr += 16;
+	h = read_eeprom(eepadr);
+	eepadr++;
+	if(h > 64){
 		mem_lost=1;
 		goto end_p;
 	}
 	
-	for(i=0;i<h;i++){
-		for(j=0;j<16;j++){
-			device_name[j]=read_eeprom(eepadr+j);
+	for(i=0; i < h; i++){
+		for(j = 0; j < 16; j++){
+			device_name[j] = read_eeprom(eepadr + j);
 		}
-		device_name[16]=NULL;	
+		device_name[16] = NULL;	
 
-		eepadr+=16;
-		hn=read_eeprom(eepadr);	eepadr++;		//品種番号
+		eepadr += 16;
+		hn = read_eeprom(eepadr);
+		eepadr++;		//品種番号
 
-		if (hn==device_no){		//データ作成
-			cn=read_eeprom(eepadr);
+		if(hn == device_no) {		//データ作成
+			//  1 + (24 + 24) + 5 ---> 54 bytes
+			cn = read_eeprom(eepadr);
 			if(cn>16){
 				mem_lost=1;
 				goto end_p;
 			}
-			command_num=cn;
+			command_num = cn;
 			eepadr++;
-		//pin_info
-			for (j=0;j<24;j++){
-				pin_info[j][0]=read_eeprom(eepadr);eepadr++;
-				pin_info[j][1]=read_eeprom(eepadr);eepadr++;
+		// pin_info
+			for (j = 0; j < 24; j++){
+				pin_info[j][0] = read_eeprom(eepadr);
+				eepadr++;
+				pin_info[j][1] = read_eeprom(eepadr);
+				eepadr++;
 			}
-			aux_init=read_eeprom(eepadr);eepadr++;
-			period_init[0]=read_eeprom(eepadr);eepadr++;
-			period_init[1]=read_eeprom(eepadr);eepadr++;
-			period_init[2]=read_eeprom(eepadr);eepadr++;
-			phase_init=read_eeprom(eepadr);eepadr++;
+			aux_init = read_eeprom(eepadr);
+			eepadr++;
+			period_init[0] = read_eeprom(eepadr);
+			eepadr++;
+			period_init[1] = read_eeprom(eepadr);
+			eepadr++;
+			period_init[2] = read_eeprom(eepadr);
+			eepadr++;
+			phase_init = read_eeprom(eepadr);
+			eepadr++;
 
 			PinAnalyze();
 
@@ -383,7 +393,7 @@ int get_device_info(void)
 				goto end_p;
 			}
 			eepadr += 54;
-			eepadr += 16;  // pin copy info (24 bytes)
+			eepadr += 24;  // pin copy info (24 bytes)
 			for(j=0;j<cn;j++){
 				eepadr+=4;
 				cm=0;
