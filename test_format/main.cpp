@@ -19,6 +19,12 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		char tmp[100];
+		strcpy(tmp, "Qwert");
+		format("'%s'\n") % tmp;
+	}
+
+	{
 		float a = 100.105f;
 		format("%f\n") % a;
 	}

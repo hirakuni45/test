@@ -334,11 +334,11 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  コンストラクター
-			@param[in]	form	入力形式
+			@param[in]	form	フォーマット式
 			@param[in]	inp		変換文字列（nullptrの場合、sci_getch で取得）
 		*/
 		//-----------------------------------------------------------------//
-		basic_input(const char* form, const char* inp = nullptr) : form_(form), inp_(inp),
+		basic_input(const char* form, const char* inp = nullptr) noexcept : form_(form), inp_(inp),
 			mode_(mode::NONE), error_(error::none), num_(0)
 		{
 			next_();
@@ -351,7 +351,7 @@ namespace utils {
 			@return エラー
 		*/
 		//-----------------------------------------------------------------//
-		error get_error() const { return error_; }
+		error get_error() const noexcept { return error_; }
 
 
 		//-----------------------------------------------------------------//
@@ -360,7 +360,7 @@ namespace utils {
 			@return 変換が全て正常なら「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool status() const { return error_ == error::none; }
+		bool status() const noexcept { return error_ == error::none; }
 
 
 		//-----------------------------------------------------------------//
@@ -369,7 +369,7 @@ namespace utils {
 			@return 正常変換数
 		*/
 		//-----------------------------------------------------------------//
-		int num() const { return num_; }
+		int num() const noexcept { return num_; }
 
 
 		//-----------------------------------------------------------------//
@@ -380,7 +380,7 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		template <typename T>
-		basic_input& operator % (T& val)
+		basic_input& operator % (T& val) noexcept
 		{
 			if(error_ != error::none) return *this;
 
