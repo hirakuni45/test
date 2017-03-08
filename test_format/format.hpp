@@ -61,6 +61,36 @@ namespace utils {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
+		@brief  有限文字列コンテナ
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <uint32_t LEN = 0>
+	class def_strout {
+		uint32_t	pos_;
+		char 		str_[LEN];
+
+	public:
+		def_strout() : pos_(0) { }
+
+		void operator() (char ch) {
+			if(pos_ < (LEN - 1)) {
+				str_[pos_] = ch;
+				++pos_;
+				str_[pos_] = 0;
+			}
+		}
+
+		void clear() { pos_ = 0; str_[0] = 0; }
+		uint32_t size() const { return pos_; }
+		uint32_t max_size() const { return LEN; }
+		uint32_t capacity() const { return LEN; }
+
+		const char* c_str() const { return str_; }
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
 		@brief  簡易 format クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -463,7 +493,8 @@ namespace utils {
 			@param[in]	form	フォーマット式
 		*/
 		//-----------------------------------------------------------------//
-		basic_format(const char* form) noexcept : error_(error::none), form_(form), num_(0), point_(0),
+		basic_format(const char* form) noexcept : error_(error::none),
+			form_(form), num_(0), point_(0),
 			bitlen_(0),
 			mode_(mode::NONE), zerosupp_(false), sign_(false) {
 			next_();
@@ -569,7 +600,7 @@ namespace utils {
 			} else if(std::is_floating_point<T>::value) {
 				if(num_ == 0 && !zerosupp_ && point_ == 0) {
 					num_ = 6;
-					point_ = 6;
+					point_ = 3;
 				}
 				switch(mode_) {
 				case mode::REAL:
