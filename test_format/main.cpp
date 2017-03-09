@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 	}
 
 	{
-		float a = 100.105f;
+		float a = 1000.105f;
 		format("%f\n") % a;
 	}
 
