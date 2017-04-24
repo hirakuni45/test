@@ -137,6 +137,10 @@ tarball:
 	tar cfvz $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H).tgz \
 	*.[hc]pp Makefile ../common/*/*.[hc]pp ../common/*/*.[hc]
 
+src_zip:
+	rm -f $(TARGET)_$(shell date +%Y%m%d%H)_src.zip
+	zip $(TARGET)_$(shell date +%Y%m%d%H)_src.zip $(PSOURCES) $(CSOURCES) Makefile
+
 bin_zip:
 	$(LK) $(LFLAGS) $(LIBS) $(OBJECTS) $(ICON_OBJ) $(LIBN) -mwindows -o $(TARGET) 
 	rm -f $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip
