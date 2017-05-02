@@ -51,41 +51,32 @@ namespace utils {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class def_chaout {
+		char*		out_;
+		uint16_t	len_;
+		uint16_t	pos_;
+		uint32_t	all_;
 	public:
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  コンストラクター
+			@param[in]	out		文字列出力用ポインター（nullptrの場合、標準出力）
+			@param[in]	len		文字列出力用長さ
+		*/
+		//-----------------------------------------------------------------//
+		def_chaout(char* out = nullptr, uint16_t len = 0) : out_(out), len_(len), pos_(0), all_(0) { } 
 		void operator() (char ch) {
-			char tmp = ch;
-			write(1, &tmp, 1);
-		}
-	};
-
-
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	/*!
-		@brief  有限文字列コンテナ
-	*/
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <uint32_t LEN = 0>
-	class def_strout {
-		uint32_t	pos_;
-		char 		str_[LEN];
-
-	public:
-		def_strout() : pos_(0) { }
-
-		void operator() (char ch) {
-			if(pos_ < (LEN - 1)) {
-				str_[pos_] = ch;
+			if(out_ != nullptr && len_ > 1 && pos_ < (len_ - 1)) {
+				out_[pos_] = ch;
 				++pos_;
-				str_[pos_] = 0;
+				out_[pos_] = 0;
+				++all_;
+			} else {
+				char tmp = ch;
+				write(1, &tmp, 1);
+				++all_;
 			}
 		}
-
-		void clear() { pos_ = 0; str_[0] = 0; }
-		uint32_t size() const { return pos_; }
-		uint32_t max_size() const { return LEN; }
-		uint32_t capacity() const { return LEN; }
-
-		const char* c_str() const { return str_; }
+		uint32_t get_length() const { return all_; }
 	};
 
 
@@ -110,8 +101,6 @@ namespace utils {
 		};
 
 	private:
-		chaout	chaout_;
-
 		enum class mode : uint8_t {
 			CHA,		///< 文字
 			STR,		///< 文字列
@@ -129,11 +118,13 @@ namespace utils {
 			NONE		///< 不明
 		};
 
-		error		error_;
-
 		const char*	form_;
 
+		chaout		chaout_;
+
 		char		buff_[34];
+
+		error		error_;
 
 		uint8_t		num_;
 		uint8_t		point_;
@@ -279,7 +270,7 @@ namespace utils {
 				v >>= 1;
 				++n;
 			} while(v != 0) ;
-			out_str_(p, '+', n);
+			out_str_(p, 0, n);
 		}
 
 
@@ -293,7 +284,7 @@ namespace utils {
 				v >>= 3;
 				++n;
 			} while(v != 0) ;
-			out_str_(p, '+', n);
+			out_str_(p, 0, n);
 		}
 
 
@@ -491,10 +482,31 @@ namespace utils {
 		/*!
 			@brief  コンストラクター
 			@param[in]	form	フォーマット式
+			@param[in]	out		文字列出力用ポインター
+			@param[in]	len		文字列出力用長さ
 		*/
 		//-----------------------------------------------------------------//
-		basic_format(const char* form) noexcept : error_(error::none),
-			form_(form), num_(0), point_(0),
+		basic_format(const char* form, char* out = nullptr, uint16_t len = 0) noexcept :
+			form_(form), chaout_(out, len),
+			error_(error::none),
+			num_(0), point_(0),
+			bitlen_(0),
+			mode_(mode::NONE), zerosupp_(false), sign_(false) {
+			next_();
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  コンストラクター
+			@param[in]	form	フォーマット式
+			@param[in]	fd		ファイル識別子
+		*/
+		//-----------------------------------------------------------------//
+		basic_format(const char* form, int fd) noexcept :
+			form_(form), chaout_(fd),
+			error_(error::none),
+			num_(0), point_(0),
 			bitlen_(0),
 			mode_(mode::NONE), zerosupp_(false), sign_(false) {
 			next_();
@@ -521,6 +533,15 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief  出力数を返す
+			@return 出力数
+		*/
+		//-----------------------------------------------------------------//
+		int get_length() const noexcept { return chaout_.get_length(); }
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief  オペレーター「%」(const char*)
 			@param[in]	val	値
 			@return	自分の参照
@@ -533,11 +554,16 @@ namespace utils {
 			}
 
 			if(mode_ == mode::STR) {
-				zerosupp_ = false;
-				uint8_t n = 0;
-				const char* p = val;
-				while((*p++) != 0) { ++n; }
-				out_str_(val, 0, n);
+				if(val == nullptr) {
+					static const char* nullstr = { "(nullptr)" };
+					out_str_(nullstr, 0, strlen(nullstr));					
+				} else {
+					zerosupp_ = false;
+					uint8_t n = 0;
+					const char* p = val;
+					while((*p++) != 0) { ++n; }
+					out_str_(val, 0, n);
+				}
 			} else {
 				error_ = error::different;
 			}
@@ -562,11 +588,16 @@ namespace utils {
 			}
 
 			if(mode_ == mode::STR) {
-				zerosupp_ = false;
-				uint8_t n = 0;
-				const char* p = val;
-				while((*p++) != 0) { ++n; }
-				out_str_(val, 0, n);
+				if(val == nullptr) {
+					static const char* nullstr = { "(nullptr)" };
+					out_str_(nullstr, 0, strlen(nullstr));					
+				} else {
+					zerosupp_ = false;
+					uint8_t n = 0;
+					const char* p = val;
+					while((*p++) != 0) { ++n; }
+					out_str_(val, 0, n);
+				}
 			} else {
 				error_ = error::different;
 			}
@@ -600,7 +631,7 @@ namespace utils {
 			} else if(std::is_floating_point<T>::value) {
 				if(num_ == 0 && !zerosupp_ && point_ == 0) {
 					num_ = 6;
-					point_ = 3;
+					point_ = 6;
 				}
 				switch(mode_) {
 				case mode::REAL:
