@@ -2,10 +2,19 @@
 
 #include "input.hpp"
 
+#include <cstdio>
+#include <cstring>
+
 int main(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
+	{
+		float a;
+		int n = std::sscanf("    100.54  ", "%f", &a);
+		std::cout << "sscanf N: " << n << ", " << a << std::endl;
+	}
+
 	using namespace utils;
 #if 1
 	int a;
