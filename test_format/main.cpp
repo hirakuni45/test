@@ -28,7 +28,8 @@ int main(int argc, char* argv[])
 		char str[] = { "Asdfg" };
 		int i = 123;
 		float a = 1000.105f;
-		format("%d, '%s', %f, %6.2f\n") % i % str % a % a;
+		float b = 0.0f;
+		format("%d, '%s', %7.3f, %6.2f\n") % i % str % a % b;
 	}
 
 }
