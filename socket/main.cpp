@@ -1,6 +1,6 @@
 //=====================================================================//
 /*!	@file
-	@brief	ソケット、データ受け取りサンプル @n
+	@brief	ソケット、サーバー、データ受け取りサンプル @n
 			Copyright 2017 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
@@ -29,6 +29,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	std::cout << "socket: " << sock << std::endl;
+
 	// struct sockaddr_in 作成
 	struct sockaddr_in sa = {0};
 	sa.sin_family = AF_INET;
@@ -43,21 +45,24 @@ int main(int argc, char* argv[])
 		close(sock);
 		return 1;
 	}
+	std::cout << "bind: " << sock << std::endl;
 
 	// リッスン
-	if(listen(sock, 128) == -1) {
+	if(listen(sock, 1) == -1) {
 		perror("listen");
 		close(sock);
 		return 1;
 	}
+	std::cout << "listen: " << sock << std::endl;
 
 	// クライアントの接続を待つ
 	int fd = accept(sock, NULL, NULL);
+	close(sock);
 	if(fd == -1) {
 		perror("accept");
-		close(sock);
 		return 1;
 	}
+	std::cout << "accept: " << fd << std::endl;
 
 	std::string line;
 	bool term = false;
@@ -68,7 +73,6 @@ int main(int argc, char* argv[])
 		if(recv_size == -1) {
 			perror("read");
 			close(fd);
-			close(sock);
 			return 1;
 		}
 
@@ -89,9 +93,6 @@ int main(int argc, char* argv[])
 	// 接続のクローズ
 	if(close(fd) == -1) {
 		perror("close");
-		close(sock);
 		return 1;
 	}
-
-	close(sock);
 }
