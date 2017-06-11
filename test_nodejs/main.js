@@ -1,3 +1,8 @@
+//
+// SEEDA03 向け、クライアントサンプル
+//
+// command-line: node main.js
+//
 "use strict";
 
 var http = require("http"),
