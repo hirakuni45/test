@@ -158,7 +158,7 @@ namespace utils {
 
 		void operator () (char ch) {
 			str_ += ch;
-			if(str_.size() >= (str_.capacity() * 8 / 7)) {  // 残り 1/8 になったら、書き出し
+			if(str_.size() >= str_.capacity()) {
 				term_(str_.c_str(), str_.size());
 				str_.clear();
 			}			
