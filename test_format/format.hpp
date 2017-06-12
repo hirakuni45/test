@@ -11,6 +11,7 @@
 			と表示される。@n
 			+ 2017/06/11 20:00- 標準文字出力クラスの再定義、実装 @n 
 			+ 2017/06/11 21:00- 固定文字列クラス向け chaout、実装 @n
+			+ 2017/06/12 14:50- memory_chaoutと、専用コンストラクター実装 @n
 			Copyright 2013,2017 Kunihito Hiramatsu
     @author 平松邦仁 (hira@rvf-rc45.net)
 */
@@ -220,9 +221,11 @@ namespace utils {
 
 		void set(char* dst, uint32_t size)
 		{
+			if(dst_ != dst || size_ != size) {  // ポインター、サイズ、どちらか異なる場合は常にリセット
+				pos_ = 0;
+			}
 			dst_ = dst;
 			size_ = size;
-			pos_ = 0;
 		}
 
 		void operator () (char ch) {
@@ -661,9 +664,10 @@ namespace utils {
 			@param[in]	form	フォーマット式
 			@param[in]	buff	文字バッファ
 			@param[in]	size	文字バッファサイズ
+			@param[in]	append	文字バッファに追加する場合「true」
 		*/
 		//-----------------------------------------------------------------//
-		basic_format(const char* form, char* buff, uint32_t size) noexcept :
+		basic_format(const char* form, char* buff, uint32_t size, bool append = false) noexcept :
 			form_(form),
 			error_(error::none),
 			num_(0), point_(0),
@@ -671,6 +675,7 @@ namespace utils {
 			mode_(mode::NONE), zerosupp_(false), sign_(false)
 		{
 			chaout_.set(buff, size);
+			if(!append) { chaout_.clear(); }
 			next_();
 		}
 

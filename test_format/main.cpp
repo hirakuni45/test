@@ -37,8 +37,10 @@ int main(int argc, char* argv[])
 		float x = 1.0f;
 		float y = 2.0f;
 		float z = 3.0f;
-		char tmp[256];
+		char tmp[512];
 		sformat("Value: %f, %f, %f\n", tmp, sizeof(tmp)) % x % y % z;
+		sformat("Value: %f, %f, %f\n", tmp, sizeof(tmp), true) % y % z % x;
+		sformat("Value: %f, %f, %f\n", tmp, sizeof(tmp), true) % z % x % y;
 		format("%s") % tmp;
 	}
 
