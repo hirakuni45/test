@@ -32,4 +32,14 @@ int main(int argc, char* argv[])
 		format("%d, '%s', %7.3f, %6.2f\n") % i % str % a % b;
 	}
 
+
+	{
+		float x = 1.0f;
+		float y = 2.0f;
+		float z = 3.0f;
+		char tmp[256];
+		sformat("Value: %f, %f, %f\n", tmp, sizeof(tmp)) % x % y % z;
+		format("%s") % tmp;
+	}
+
 }
