@@ -137,6 +137,17 @@ namespace utils {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
+		@brief  標準出力ターミネーター・ファンクタ
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	class null_term {
+	public:
+		void operator() (const char* s, uint16_t l) { }
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
 		@brief  文字列クラス、出力ファンクタ
 		@param[in]	STR		文字列クラス
 		@param[in]	TERM	ターミネーター・ファンクタ	
@@ -183,6 +194,48 @@ namespace utils {
 		STR& at_str() { return str_; }
 
 		TERM& at_term() { return term_; }
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  メモリー文字列クラス
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	class memory_chaout {
+
+		char*		dst_;
+		uint32_t	size_;
+		uint32_t	pos_;
+
+	public:
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  コンストラクター
+			@param[in]	dst		出力先
+			@param[in]	size	最大サイズ
+		*/
+		//-----------------------------------------------------------------//
+		memory_chaout(char* dst = nullptr, uint32_t size = 0) : dst_(dst), size_(size), pos_(0) { }
+
+		void set(char* dst, uint32_t size)
+		{
+			dst_ = dst;
+			size_ = size;
+			pos_ = 0;
+		}
+
+		void operator () (char ch) {
+			if(pos_ < (size_ - 1)) {
+				dst_[pos_] = ch;
+				++pos_;
+				dst_[pos_] = 0;
+			}
+		}
+
+		void clear() { pos_ = 0; }
+
+		uint32_t size() const { return size_; }
 	};
 
 
@@ -604,6 +657,26 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief  コンストラクター
+			@param[in]	form	フォーマット式
+			@param[in]	buff	文字バッファ
+			@param[in]	size	文字バッファサイズ
+		*/
+		//-----------------------------------------------------------------//
+		basic_format(const char* form, char* buff, uint32_t size) noexcept :
+			form_(form),
+			error_(error::none),
+			num_(0), point_(0),
+			bitlen_(0),
+			mode_(mode::NONE), zerosupp_(false), sign_(false)
+		{
+			chaout_.set(buff, size);
+			next_();
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief  出力ファンクタの参照
 			@return 出力ファンクタ
 		*/
@@ -761,6 +834,7 @@ namespace utils {
 	template <class CHAOUT> CHAOUT basic_format<CHAOUT>::chaout_;
 
 	typedef basic_format<stdout_chaout> format;
+	typedef basic_format<memory_chaout> sformat;
 	typedef basic_format<null_chaout> null_format;
 	typedef basic_format<size_chaout> size_format;
 }
