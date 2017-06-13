@@ -41,7 +41,8 @@ int main(int argc, char* argv[])
 		sformat("Value: %f, %f, %f\n", tmp, sizeof(tmp)) % x % y % z;
 		sformat("Value: %f, %f, %f\n", tmp, sizeof(tmp), true) % y % z % x;
 		sformat("Value: %f, %f, %f\n", tmp, sizeof(tmp), true) % z % x % y;
-		format("%s") % tmp;
+		int size = sformat::chaout().size();
+		format("(%d)\n%s") % size % tmp;
 	}
 
 }
