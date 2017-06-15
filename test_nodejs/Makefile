@@ -27,7 +27,10 @@ VPATH		=
 
 CSOURCES	=
 
-PSOURCES	=	main.cpp
+PSOURCES	=	main.cpp \
+				sjis_utf16.cpp \
+				string_utils.cpp \
+				file_io.cpp
 
 STDLIBS		=
 
