@@ -1,7 +1,7 @@
 #-----------------------------------------------#
 # Application Binary Build Makefile             #
 #-----------------------------------------------#
-TARGET		=	test_client
+TARGET		=	socket_client
 
 #ICON_RC		=	icon.rc
 
