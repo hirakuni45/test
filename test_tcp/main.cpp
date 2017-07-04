@@ -73,7 +73,6 @@ int main(int argc, char* argv[])
 		}
 		std::cout << "listen: " << sock << std::endl;
 
-
 		// クライアントの接続を待つ
 		fd = accept(sock, NULL, NULL);
 		close(sock);
