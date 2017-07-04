@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
 	}
 
 	// 接続のクローズ
+	utils::format("UDP Close(%d)\n") % sock;
 	if(close(sock) == -1) {
 		perror("close");
 		return 1;
 	}
-	utils::format("UDP Close\n");
 }
