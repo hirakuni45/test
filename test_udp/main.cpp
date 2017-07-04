@@ -46,6 +46,7 @@ int main(int argc, char* argv[])
 		perror("UDP socket");
 		return 1;
 	}
+	utils::format("UDP Open: %d\n") % sock;
 
 	// struct sockaddr_in 作成
 	struct sockaddr_in cl = { 0 };
@@ -59,9 +60,11 @@ int main(int argc, char* argv[])
 	utils::format("UDP Send: %s (%d)\n")
 		% get_ip_str(cl.sin_addr.s_addr)
 		% static_cast<int>(htons(cl.sin_port));
-	int len = 8;
-	sendto(sock, "AbcdefgH", len, 0, (struct sockaddr *)&cl, sizeof(cl));
-	utils::format("UDP Client sendto: %d bytes\n") % len;
+
+	static const char* msg = { "AbcdefgH" };
+	int len = std::strlen(msg);
+	sendto(sock, msg, len, 0, (struct sockaddr *)&cl, sizeof(cl));
+	utils::format("UDP Client sendto: '%s', %d bytes\n") % msg % len;
 
 	// 受信
 	utils::format("UDP Recv: %s (%d)\n")
@@ -72,7 +75,7 @@ int main(int argc, char* argv[])
 	int ret = recvfrom(sock, tmp, sizeof(tmp), 0, (struct sockaddr *)&cl, &addrlen);
 	if(ret > 0) {
 		tmp[ret] = 0;
-		utils::format("UDP Client recvfrom: %d, '%s'\n") % ret % tmp;
+		utils::format("UDP Client recvfrom: '%s', %d bytes\n") % tmp % ret;
 	}
 
 	// 接続のクローズ
@@ -80,4 +83,5 @@ int main(int argc, char* argv[])
 		perror("close");
 		return 1;
 	}
+	utils::format("UDP Close\n");
 }
