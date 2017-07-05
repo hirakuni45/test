@@ -37,6 +37,8 @@ int main(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
+	srand(static_cast<unsigned>(time(NULL)));
+
 	bool server = false;
 
 	// クライアントソケット作成
@@ -109,7 +111,7 @@ int main(int argc, char* argv[])
 	char tmp[32];
 	for(int i = 0; i < (int)sizeof(tmp); ++i) { tmp[i] = 0x20 + (rand() & 63); }
 	write(fd, tmp, sizeof(tmp));
-	utils::format("TCP Send: '%s'\n") % tmp;
+	utils::format("TCP %s Send: '%s'\n") % (server ? "Server" : "Client") % tmp;
 
 	// 受信
 	char buffer[256];
@@ -120,7 +122,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	buffer[recv_size] = 0;
-	utils::format("TCP Recv: '%s'\n") % buffer;
+	utils::format("TCP %s Recv: '%s'\n") % (server ? "Server" : "Client") % buffer;
 
 	// 接続のクローズ
 	if(close(fd) == -1) {
