@@ -114,19 +114,43 @@ int main(int argc, char* argv[])
 	utils::format("TCP %s Send: '%s'\n") % (server ? "Server" : "Client") % tmp;
 
 	// 受信
-	char buffer[256];
-	int recv_size = read(fd, buffer, sizeof(buffer));
-	if(recv_size == -1) {
-		perror("read");
-		close(sock);
-		return 1;
+	if(0) {
+		uint32_t timeout = 0;
+		int rpos = 0;
+		char tmp[256];
+		while(rpos < 32) {	
+			int ret = read(fd, &tmp[rpos], sizeof(tmp));
+			if(ret < 0) {
+				perror("read");
+				close(sock);
+				return 1;
+			} else {
+				rpos += ret;
+			}
+			usleep(10000);
+			timeout += 10;
+			if(timeout >= 5000) break;
+		}
+		if(rpos == 32) {
+			tmp[rpos] = 0;
+			utils::format("TCP %s Recv: '%s'\n") % (server ? "Server" : "Client") % tmp;
+		} else {
+			utils::format("TCP %s Recv timeout\n") % (server ? "Server" : "Client");
+		}
 	}
-	buffer[recv_size] = 0;
-	utils::format("TCP %s Recv: '%s'\n") % (server ? "Server" : "Client") % buffer;
+
+	for(int i = 0; i < 100; ++i) {  // 1 秒待ってからクローズ
+		usleep(10000);
+	}
 
 	// 接続のクローズ
 	if(close(fd) == -1) {
 		perror("close");
 		return 1;
+	}
+	utils::format("TCP %s Close\n") % (server ? "Server" : "Client");
+
+	for(int i = 0; i < 100; ++i) {  // 1 秒待ってからクローズ
+		usleep(10000);
 	}
 }
