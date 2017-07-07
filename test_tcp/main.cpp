@@ -110,41 +110,27 @@ int main(int argc, char* argv[])
 	for(uint32_t loop = 0; loop < loop_cnt; ++loop) {
 		// 送信
 		char tmp[256];
-		uint32_t length = (rand() & 15) + 8;
-		for(uint32_t i = 0; i < length; ++i) { tmp[i] = 0x20 + (rand() & 63); }
-		write(fd, tmp, length);
-		utils::format("TCP %s Send (%d): '%s', %d\n") % (server ? "Server" : "Client") % fd % tmp % length;
+		uint32_t len = (rand() & 15) + 8;
+		for(uint32_t i = 0; i < len; ++i) { tmp[i] = 0x20 + (rand() & 63); }
+		write(fd, tmp, len);
+		tmp[len] = 0;
+		utils::format("TCP %s Send (%d): '%s', %d\n") % (server ? "Server" : "Client") % fd % tmp % len;
 
 		// 受信
 		{
-			uint32_t timeout = 300;  // 3sec
-			uint32_t timeloop = 0;
-			uint32_t rpos = 0;
+			usleep(20000);
+
 			char tmp[256];
-			while(rpos < length) {	
-				int ret = read(fd, &tmp[rpos], sizeof(tmp));
-				if(ret < 0) {
-					perror("read");
-					close(sock);
-					return 1;
-				} else {
-					rpos += static_cast<uint32_t>(ret);
-					timeloop = 0;
-				}
-				usleep(10000);
-				if(timeloop < timeout) {
-					++timeloop;
-				} else {
-					break;
-				}
+			int ret = read(fd, tmp, sizeof(tmp));
+			if(ret < 0) {
+				perror("read");
+				close(sock);
+				return 1;
 			}
-			tmp[rpos] = 0;
-			if(rpos >= length) {
+			if(ret > 0) {
+				tmp[ret] = 0;
 				utils::format("TCP %s Recv (%d): '%s', %d\n")
-					% (server ? "Server" : "Client") % sock % tmp % length;
-			} else {
-				utils::format("TCP %s Recv timeout (%d)\n") % (server ? "Server" : "Client") % fd;
-				break;
+					% (server ? "Server" : "Client") % sock % tmp % ret;
 			}
 		}
 	}
