@@ -177,7 +177,10 @@ strip:
 endif
 
 run:
-	./$(TARGET) 00039_201706151027.csv
+	./$(TARGET) -v 00039_201706151028.csv
+
+
+#	./$(TARGET) 00039_201706151027.csv
 
 clean:
 	rm -rf $(BUILD) $(TARGET)$(FEXT)
