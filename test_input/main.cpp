@@ -9,14 +9,28 @@ int main(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
+	using namespace utils;
+
+#if 0
 	{
 		float a;
 		int n = std::sscanf("    100.54  ", "%f", &a);
 		std::cout << "sscanf N: " << n << ", " << a << std::endl;
 	}
+#endif
 
-	using namespace utils;
 #if 1
+	{
+		float a;
+		if((input("%f", "2.5e3") % a).status()) {
+			std::cout << a << std::endl;
+		} else {
+			std::cout << "Error..." << std::endl;
+		}
+	}
+#endif
+
+#if 0
 	int a;
 	auto err = (input("%d") % a).get_error();
 	if(err == input::error::none) {
