@@ -54,6 +54,8 @@ namespace {
 
 		uint32_t error = 0;
 
+		utils::strings back;
+
 		while(!fio.eof()) {
 			auto line = fio.get_line();
 			if(line.empty()) continue;
@@ -76,9 +78,33 @@ namespace {
 					++error;
 				}
 				if(n == 2) {
+					back = ss;
 					first_time = tt;
 				} else if((first_time + n - 2) != tt) {
 					utils::format("CSV Date/Time Lost: (%d)%s\n") % n % line.c_str();
+				}
+				if(n > 2) {
+
+/// DATE,TIME,
+/// CH,MAX,MIN,AVE,MEDIAN,COUNTUP,
+					uint32_t match = 0;
+					for(uint32_t i = 0; i < 8; ++i) {
+						if(ss[i * 8 + 1] == back[i * 8 + 1]) {
+							++match;
+						}
+						if(ss[i * 8 + 2] == back[i * 8 + 2]) {
+							++match;
+						}
+						if(ss[i * 8 + 3] == back[i * 8 + 3]) {
+							++match;
+						}
+						if(ss[i * 8 + 4] == back[i * 8 + 4]) {
+							++match;
+						}
+					}
+					if(match == 4) {
+						utils::format("CSV Data even: (%d) - (%d)\n") % (n - 1) % n;
+					}
 				}
 			}
 //			utils::format("%s\n") % line.c_str();
