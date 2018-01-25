@@ -4,6 +4,11 @@
 #include <algorithm>
 #include <functional>
 
+#include "sample.hpp"
+
+#include "fixed_map.hpp"
+
+#if 0
 namespace {
 
 	typedef std::vector<uint16_t> MEM;
@@ -78,6 +83,32 @@ int main(int argc, char* argv[])
 	std::cout << "Average: " << static_cast<int>(ave) << std::endl;
 	std::cout << "SET Median: " << med << std::endl;
 
+}
+#endif
 
+seeda::sample	sample_;
 
+int main(int argc, char* argv[]);
+
+int main(int argc, char* argv[])
+{
+
+//	typedef utils::fixed_map<uint16_t, 1000> FXMAP;
+//	FXMAP map_;
+//	map_.clear();
+
+	sample_.clear();
+
+	for(int i = 0; i < 1000; ++i) {
+		sample_.add(i + 750);
+///		map_.add(2000 - i);
+	}
+///	map_.list();
+
+	sample_.collect();
+
+	const seeda::sample_t& t = sample_.get();
+	utils::format("Min:    %d\n") % t.min_;
+	utils::format("Max:    %d\n") % t.max_;
+	utils::format("Median: %d\n") % t.median_;
 }
