@@ -19,6 +19,26 @@
 
 namespace {
 
+	enum class type {
+		idle,
+		server_send_first,
+		server_recv_first,
+		client_send_first,
+		client_recv_first,
+	};
+
+	// テスト・タイプの設定
+//	type		type_ = type::idle;
+//	type		type_ = type::server_send_first;
+	type		type_ = type::server_recv_first;
+
+	// 転送回数の設定
+	uint32_t	test_loop_ = 10;
+
+	// クローズを行う遅延時間（１０ｍｓ単位）
+	bool		close_delay_ = 500;
+
+
 	const char* get_ip_str(uint32_t ip)
 	{
 		const uint8_t* p = reinterpret_cast<const uint8_t*>(&ip);
@@ -30,8 +50,8 @@ namespace {
 			% static_cast<int>(p[3]);
 		return tmp;
 	}
-
 }
+
 
 int main(int argc, char* argv[]);
 
@@ -40,14 +60,44 @@ int main(int argc, char* argv[])
 	srand(static_cast<unsigned>(time(NULL)));
 
 	bool server = false;
+	if(type_ == type::server_send_first || type_ == type::server_recv_first) {
+		server = true;
+	}
+
+	bool first_send = false;
+	if(type_ == type::server_send_first || type_ == type::client_send_first) {
+		first_send = true;
+	}
+
+	switch(type_) {
+	case type::idle:
+		utils::format("TCP Test type idle (exit)\n");
+		return 0;
+		break;
+	case type::server_send_first:
+		utils::format("TCP Test type 'Server', 'Send First'\n");
+		break;
+	case type::server_recv_first:
+		utils::format("TCP Test type 'Server', 'Recv First'\n");
+		break;
+	case type::client_send_first:
+		utils::format("TCP Test type 'Client', 'Send First'\n");
+		break;
+	case type::client_recv_first:
+		utils::format("TCP Test type 'Client', 'Recv First'\n");
+		break;
+	default:
+		break;
+	}
 
 	// クライアントソケット作成
 	int sock = socket(PF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
-		perror("TCP socket");
+		perror("TCP Test socket");
 		return 1;
 	}
-	utils::format("TCP Socket Open (%d)\n") % sock;
+	utils::format("TCP Test socket open (%s): (%d)\n")
+		% (server ? "Server" : "client") % sock;
 
 	int fd = -1;
 	if(server) {
@@ -60,29 +110,35 @@ int main(int argc, char* argv[])
 		cl.sin_addr.s_addr = htonl(INADDR_ANY);
 
 		// バインド
-		if(bind(sock, (struct sockaddr*)&cl, sizeof(struct sockaddr_in)) == -1) {
-			perror("bind");
+		if(bind(sock, (struct sockaddr*)&cl, sizeof(struct sockaddr_in)) < 0) {
+			perror("TCP Test bind");
 			close(sock);
 			return 1;
 		}
-		utils::format("TCP Bind: '%s' (%d)\n") % get_ip_str(cl.sin_addr.s_addr) % htons(cl.sin_port);
+		utils::format("TCP Test bind (Server): '%s' %d (%d)\n")
+			% get_ip_str(cl.sin_addr.s_addr) % htons(cl.sin_port) % sock;
 
 		// リッスン
-		if(listen(sock, 1) == -1) {
-			perror("listen");
+		if(listen(sock, 1) < 0) {
+			perror("TCP Test listen");
 			close(sock);
 			return 1;
 		}
-		std::cout << "listen: " << sock << std::endl;
+		utils::format("TCP Test listen (Server): (%d)\n") % sock;
 
 		// クライアントの接続を待つ
-		fd = accept(sock, NULL, NULL);
-		close(sock);
-		if(fd == -1) {
-			perror("accept");
-			return 1;
+		{
+			struct sockaddr_in cl = { 0 };
+			socklen_t len = sizeof(struct sockaddr);
+			fd = accept(sock, (struct sockaddr*)&cl, &len);
+			close(sock);
+			if(fd == -1) {
+				perror("accept");
+				return 1;
+			}
+			utils::format("TCP Test accept (Server): '%s', (%d)\n")
+				% get_ip_str(cl.sin_addr.s_addr) % fd;
 		}
-		std::cout << "accept: " << fd << std::endl;
 
 	} else {
 		// struct sockaddr_in 作成
@@ -97,7 +153,7 @@ int main(int argc, char* argv[])
 		int ret = connect(sock, (struct sockaddr *)&cl, sizeof(cl));
 		if(ret < 0) {
 			close(sock);
-			perror("TCP connect");
+			perror("TCP Test connect");
 			return 1;
 		}
 		utils::format("TCP Client connect (%d)\n") % sock;
@@ -105,52 +161,78 @@ int main(int argc, char* argv[])
 		fd = sock;
 	}
 
-	uint32_t loop_cnt = 10;
-	utils::format("TCP Client Send/Recv loop (%d): %d\n") % fd % loop_cnt;
-	for(uint32_t loop = 0; loop < loop_cnt; ++loop) {
-		// 送信
-		char tmp[256];
-		uint32_t len = (rand() & 15) + 8;
-		for(uint32_t i = 0; i < len; ++i) { tmp[i] = 0x20 + (rand() & 63); }
-		write(fd, tmp, len);
-		tmp[len] = 0;
-		utils::format("TCP %s Send (%d): '%s', %d\n") % (server ? "Server" : "Client") % fd % tmp % len;
+	if(first_send) {
+		utils::format("TCP Test Send/Recv %d loop (%s): (%d)\n")
+			% test_loop_ % (server ? "Server" : "Client") % fd;
 
-		// 受信
-		{
-			usleep(20000);
+		for(uint32_t loop = 0; loop < test_loop_; ++loop) {
+			// 送信
+			char tmp[256];
+			uint32_t len = (rand() & 15) + 8;
+			for(uint32_t i = 0; i < len; ++i) { tmp[i] = 0x20 + (rand() & 63); }
+			write(fd, tmp, len);
+			tmp[len] = 0;
+			utils::format("TCP Test Send (%s): '%s', %d bytes (%d)\n")
+				% (server ? "Server" : "Client") % tmp % len % fd;
+
+			// 受信
+			uint32_t all = 0;
+			while(all < (len * 5 / 7)) {
+///				usleep(10000);  // 10ms
+
+				char tmp[256];
+				int ret = read(fd, tmp, sizeof(tmp));
+				if(ret < 0) {
+					perror("read");
+					close(sock);
+					return 1;
+				}
+				if(ret > 0) {
+					tmp[ret] = 0;
+				utils::format("TCP Test Recv (%s): '%s', %d bytes (%d)\n")
+					% (server ? "Server" : "Client") % tmp % ret % fd;
+					all += ret;
+				}
+			}
+		}
+	} else {
+		utils::format("TCP Test Recv/Send %d loop (%s): (%d)\n")
+			% test_loop_ % (server ? "Server" : "Client") % fd;
+
+		for(uint32_t loop = 0; loop < test_loop_; ++loop) {
+			// 受信
+///			usleep(10000);  // 10ms
 
 			char tmp[256];
-			int ret = read(fd, tmp, sizeof(tmp));
-			if(ret < 0) {
+			int len = read(fd, tmp, sizeof(tmp));
+			if(len < 0) {
 				perror("read");
 				close(sock);
 				return 1;
 			}
-			if(ret > 0) {
-				tmp[ret] = 0;
-				utils::format("TCP %s Recv (%d): '%s', %d\n")
-					% (server ? "Server" : "Client") % sock % tmp % ret;
+			if(len > 0) {
+				tmp[len] = 0;
+				utils::format("TCP Test (%d)Recv (%s): '%s'  %d bytes desc(%d)\n")
+					% loop % (server ? "Server" : "Client") % tmp % len % fd;
 			}
+
+			write(fd, tmp, len);
+			tmp[len] = 0;
+			utils::format("TCP Test (%d)Send (%s): '%s'  %d bytes desc(%d)\n")
+				% loop % (server ? "Server" : "Client") % tmp % len % fd;
 		}
 	}
 
-#if 0
-	for(int i = 0; i < 100; ++i) {  // 1 秒待ってからクローズ
-		usleep(10000);
+	if(close_delay_) {
+		for(uint32_t i = 0; i < close_delay_; ++i) {
+			usleep(10000);  // 10ms
+		}
 	}
-#endif
 
 	// 接続のクローズ
 	if(close(fd) == -1) {
 		perror("close");
 		return 1;
 	}
-	utils::format("TCP %s Close (%d)\n") % (server ? "Server" : "Client") % fd;
-
-#if 0
-	for(int i = 0; i < 600; ++i) {
-		usleep(10000);
-	}
-#endif
+	utils::format("TCP Test close (%s): (%d)\n") % (server ? "Server" : "Client") % fd;
 }
