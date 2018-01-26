@@ -120,7 +120,7 @@ namespace seeda {
 		uint32_t	sum_;
 		uint32_t	count_;
 
-		typedef utils::fixed_map<uint16_t, 1000> MAP;
+		typedef utils::fixed_map<uint16_t, uint16_t, 1000> MAP;
 		MAP		map_;
 
 	public:
@@ -174,7 +174,7 @@ namespace seeda {
 			if(t_.limit_hi_level_ < data) ++t_.limit_hi_count_;
 			if(t_.limit_lo_level_ > data) ++t_.limit_lo_count_;
 
-			map_.add(data);
+			map_.insert(data, 1);
 		}
 
 
@@ -188,18 +188,22 @@ namespace seeda {
 			uint32_t med = 0;
 			uint32_t sum = 0;
 
+			utils::format("Map size: %d\n") % map_.size();
+			utils::format("Map key[0]: %d\n") % map_.get_key(0);
+			utils::format("Map pad[0]: %d\n") % map_.get_pad(0);
+
 			uint32_t i = 0;
 			while(i < 1000) {
-				uint32_t cnt = map_.get_count(i);
+				uint32_t cnt = map_.get_pad(i);
 				sum += cnt;
 				if(sum >= (count_ / 2)) {
-					med = map_.get_value(i);
+					med = map_.get_key(i);
 					if((count_ & 1) == 0) {
 						++i;
-						if(i == 1000) {  // 要素数が１個の場合は、平均しない
+						if(i >= map_.size()) {  // 要素数が１個の場合は、平均しない
 							break;
 						}
-						med += static_cast<uint32_t>(map_.get_value(i));
+						med += static_cast<uint32_t>(map_.get_key(i));
 						med /= 2;
 					}
 					break;
@@ -208,7 +212,6 @@ namespace seeda {
 			}
 
 			t_.median_ = med;
-
 			t_.average_ = sum_ / count_;
 		}
 

@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <functional>
 
-#include "sample.hpp"
-
 #include "fixed_map.hpp"
+
+#include "sample.hpp"
 
 #if 0
 namespace {
@@ -86,29 +86,63 @@ int main(int argc, char* argv[])
 }
 #endif
 
-seeda::sample	sample_;
 
 int main(int argc, char* argv[]);
 
+#if 1
 int main(int argc, char* argv[])
 {
-
-//	typedef utils::fixed_map<uint16_t, 1000> FXMAP;
-//	FXMAP map_;
-//	map_.clear();
+	seeda::sample	sample_;
 
 	sample_.clear();
 
 	for(int i = 0; i < 1000; ++i) {
-		sample_.add(i + 750);
-///		map_.add(2000 - i);
+		sample_.add(rand());
 	}
-///	map_.list();
 
 	sample_.collect();
 
-	const seeda::sample_t& t = sample_.get();
-	utils::format("Min:    %d\n") % t.min_;
-	utils::format("Max:    %d\n") % t.max_;
-	utils::format("Median: %d\n") % t.median_;
+	{
+		const seeda::sample_t& t = sample_.get();
+		utils::format("Min:     %d\n") % t.min_;
+		utils::format("Max:     %d\n") % t.max_;
+		utils::format("Average: %d\n") % t.average_;
+		utils::format("Median:  %d\n") % t.median_;
+	}
+
+	sample_.clear();
+	for(int i = 0; i < 1000; ++i) {
+		sample_.add(0);
+	}
+
+	sample_.collect();
+
+	{
+		const seeda::sample_t& t = sample_.get();
+		utils::format("Min:     %d\n") % t.min_;
+		utils::format("Max:     %d\n") % t.max_;
+		utils::format("Average: %d\n") % t.average_;
+		utils::format("Median:  %d\n") % t.median_;
+	}
 }
+#endif
+
+#if 0
+int main(int argc, char* argv[])
+{
+
+	typedef utils::fixed_map<uint16_t, uint16_t, 1000> MAP;
+	MAP	map;
+
+	for(int i = 0; i < 100; ++i) {
+		map.insert((rand() >> 4), 1);
+	}
+
+
+
+	std::cout << "Size: " << map.size() << std::endl;
+
+	map.in_trav(0);
+}
+#endif
+
