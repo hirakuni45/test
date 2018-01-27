@@ -35,6 +35,8 @@ fi
 #   INFOPATH="${HOME}/info:${INFOPATH}"
 # fi
 
+PATH=/usr/local/bin:$PATH
+
 # emacs path 
 PATH=$PATH:/c/emacs/bin
 
@@ -49,6 +51,15 @@ PATH=$PATH:/usr/local/rl78-elf/bin
 
 # WinAVR path
 PATH=$PATH:/c/avr8-gnu-toolchain/bin
+
+# ESP32 path
+PATH=$PATH:/usr/local/xtensa-esp32-elf/bin
+export IDF_PATH=/d/ESP32/esp-idf
+
+PATH=$PATH:/c/'Program Files (x86)'/Microchip/'MPLAB C30'/bin
+
+# Graphviz path
+PATH=$PATH:/c/'Program Files (x86)'/Graphviz2.34/bin
 
 # prompt
 PS1='\h.\w % '
