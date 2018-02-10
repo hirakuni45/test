@@ -1,7 +1,7 @@
-BoldAsFont=no
-Font=Inconsolata
 Locale=ja_JP
 Charset=UTF-8
+BoldAsFont=no
+Font=MyricaM M
 FontHeight=12
 FontSmoothing=full
 Columns=100
