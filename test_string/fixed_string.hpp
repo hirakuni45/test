@@ -1,9 +1,11 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	固定サイズ文字列クラス @n
-			Copyright 2017 Kunihito Hiramatsu
-	@author	平松邦仁 (hira@rvf-rc45.net)
+	@brief	固定サイズ文字列クラス
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017, 2018 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
 //=====================================================================//
 #include <algorithm>
@@ -19,8 +21,8 @@ namespace utils {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <uint32_t SIZE>
 	class fixed_string {
-		char		text_[SIZE];
 		uint32_t	pos_;
+		char		text_[SIZE + 1];
 
 	public:
 		//-----------------------------------------------------------------//
@@ -29,13 +31,12 @@ namespace utils {
 			@param[in]	str	初期設定文字列
 		*/
 		//-----------------------------------------------------------------//
-		fixed_string(const char* str = nullptr) : pos_(0) {
+		fixed_string(const char* str = nullptr) noexcept : pos_(0) {
 			if(str != nullptr) {
-				std::strcpy(text_, str);
+				std::strncpy(text_, str, SIZE);
 				pos_ = std::strlen(text_);
-			} else {
-				text_[pos_] = 0;
 			}
+			text_[pos_] = 0;
 		}
 
 
@@ -45,7 +46,7 @@ namespace utils {
 			@return 格納可能な最大サイズ
 		*/
 		//-----------------------------------------------------------------//
-		uint32_t capacity() const noexcept { return SIZE - 1; }
+		uint32_t capacity() const noexcept { return SIZE; }
 
 
 		//-----------------------------------------------------------------//
@@ -98,7 +99,7 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		fixed_string& operator = (const fixed_string& src) {
-			std::strcpy(text_, src.c_str());
+			std::strncpy(text_, src.c_str(), SIZE);
 			pos_ = src.pos_;
 			return *this;
 		}
@@ -112,7 +113,7 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		fixed_string& operator += (char ch) {
-			if(pos_ < (SIZE - 1)) {
+			if(pos_ < SIZE) {
 				text_[pos_] = ch;
 				++pos_;
 				text_[pos_] = 0;
@@ -134,13 +135,13 @@ namespace utils {
 			}
 
 			uint32_t l = std::strlen(str);
-			if((pos_ + l) < (SIZE - 1)) {
+			if((pos_ + l) < SIZE) {
 				std::strcpy(&text_[pos_], str);
 				pos_ += l;
 			} else {  // バッファが許す範囲でコピー
-				l = SIZE - pos_ - 1;
+				l = SIZE - pos_;
 				std::strncpy(&text_[pos_], str, l);
-				pos_ = SIZE - 1;
+				pos_ = SIZE;
 			}
 			text_[pos_] = 0; 
 			return *this;
@@ -155,7 +156,7 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		char& operator [] (uint32_t pos) noexcept {
-			if(pos >= pos_) {
+			if(pos >= SIZE) {
 				static char tmp = 0;
 				return tmp;
 			}
