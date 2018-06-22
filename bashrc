@@ -188,3 +188,12 @@ alias ls='ls -hF --color=tty'                 # classify files in colour
 # }
 # 
 # alias cd=cd_func
+
+function wincmd() {
+    CMD=$1
+    shift
+    $CMD $* 2>&1 | iconv -f cp932 -t utf-8
+}
+alias ipconfig='wincmd ipconfig'
+alias netstat='wincmd netstat'
+alias ping='wincmd ping'
