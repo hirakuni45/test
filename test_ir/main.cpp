@@ -3,6 +3,8 @@
 
 #include "ir_send.hpp"
 
+// リモコン、NEC フレーム送信
+
 namespace {
 
 	uint32_t	nnn_ = 0;
