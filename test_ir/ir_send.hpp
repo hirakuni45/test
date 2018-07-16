@@ -37,6 +37,7 @@ namespace chip {
 			out1_ph1,	// 出力１、フェーズ１
 			out1_ph2,	// 出力１、フェーズ２
 			out1_ph3,	// 出力１、フェーズ３
+			Term,		// ターミネーター
 		};
 
 		enum class MODE : uint8_t {
@@ -44,6 +45,7 @@ namespace chip {
 			custom_l,	// カスタム L
 			custom_h,	// カスタム H
 			user,		// ユーザーデータ
+			term,		// 最終
 		};
 
 		OUTPUT		out_;
@@ -78,7 +80,6 @@ namespace chip {
 		{
 			switch(mode_) {
 			case MODE::none:
-				task_ = TASK::idle;
 				break;
 			case MODE::custom_l:
 				data_ = custom_ >> 8;
@@ -94,6 +95,11 @@ namespace chip {
 			case MODE::user:
 				data_ = user_;
 				bit_mask_ = 0x80;
+				mode_ = MODE::term;
+				break;
+			case MODE::term:
+				count_ = 6;
+				task_ = TASK::Term;
 				mode_ = MODE::none;
 				break;
 			default:
@@ -116,13 +122,18 @@ namespace chip {
 		/*!
 			@brief  ユーザー・データ出力
 			@param[in]	user	ユーザー・データ
+			@return 成功なら「true」
 		*/
 		//-----------------------------------------------------------------//
-		void send_data(uint8_t user)
+		bool send_data(uint8_t user)
 		{
+			if(task_ != TASK::idle) {
+				return false;
+			}
 			user_ = user;
 			count_ = 16;
 			task_ = TASK::LeaderH;
+			return true;
 		}
 
 
@@ -135,6 +146,7 @@ namespace chip {
 		{
 			switch(task_) {
 			case TASK::idle:
+				out_(0);
 				break;
 
 			case TASK::LeaderH:
@@ -178,6 +190,14 @@ namespace chip {
 			case TASK::out1_ph3:
 				out_(0);
 				next_bit_();
+				break;
+
+			case TASK::Term:
+				out_(1);
+				--count_;
+				if(count_ == 0) {
+					task_ = TASK::idle;
+				}
 				break;
 
 			default:
