@@ -424,7 +424,7 @@ namespace utils {
 		}
 
 
-		void out_bin_(int32_t v) {
+		void out_bin_(uint32_t v) {
 			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
 			uint8_t n = 0;
@@ -438,7 +438,7 @@ namespace utils {
 		}
 
 
-		void out_oct_(int32_t v) {
+		void out_oct_(uint32_t v) {
 			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
 			uint8_t n = 0;

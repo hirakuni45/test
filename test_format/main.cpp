@@ -45,4 +45,8 @@ int main(int argc, char* argv[])
 		format("(%d)\n%s") % size % tmp;
 	}
 
+
+	{
+		format("0o%03o, 0b%08b\n") % static_cast<int16_t>(-1) %  static_cast<int16_t>(-1);
+	}
 }
