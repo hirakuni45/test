@@ -72,4 +72,12 @@ int main(int argc, char* argv[])
 			utils::format("%d, '%s' : '%s' NE\n") % s.size() % s.c_str() % p;
 		}
 	}
+
+	{  // for
+		fxstring s("0123456789");
+		for(auto it = s.begin(); it != s.end(); ++it) {
+			utils::format("%c") % *it;
+		}
+		utils::format("\n");
+	}
 }
