@@ -46,7 +46,16 @@ int main(int argc, char* argv[])
 	}
 
 
-	{
-		format("0o%03o, 0b%08b\n") % static_cast<int16_t>(-1) %  static_cast<int16_t>(-1);
+	{  // 10進、16進、8進、2進
+		int16_t n = -1;
+		format("%d, 0x%04x, 0o%03o, 0b%04b\n") % n % n % n % n;
+		n = 1;
+		format("%d, 0x%04x, 0o%03o, 0b%04b\n") % n % n % n % n;
+	}
+
+	{  // 異なったプロトタイプ
+		static const char* str = { "Poiuytrewq" };
+		int val = 1921;
+		format("%s, %d\n") % val % str;
 	}
 }
