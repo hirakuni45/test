@@ -1,4 +1,5 @@
 #include <iostream>
+#include <boost/format.hpp>
 
 #include "format.hpp"
 
@@ -57,5 +58,21 @@ int main(int argc, char* argv[])
 		static const char* str = { "Poiuytrewq" };
 		int val = 1921;
 		format("%s, %d\n") % val % str;
+	}
+	format("\n");
+
+	{  // 0.01 * 10000
+		float a = 0.0f;
+		for(int i = 0; i < 10000; ++i) {
+			a += 0.01f;
+		}
+		format("0.01 * 10000 (float): %6.3f\n") % a;
+	}
+	{  // 0.01 * 10000
+		double a = 0.0f;
+		for(int i = 0; i < 10000; ++i) {
+			a += 0.01;
+		}
+		std::cout << boost::format("0.01 * 10000 (double): %6.3f\n") % a;
 	}
 }
