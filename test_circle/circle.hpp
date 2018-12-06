@@ -17,7 +17,7 @@ namespace imath {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
-		@brief	円クラス
+		@brief	円座標生成クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class circle {
@@ -34,6 +34,7 @@ namespace imath {
 
 		bool		cw_;
 
+		// 座標領域を生成
 		static int32_t octant_(const vtx::ipos& p) noexcept
 		{
 			uint32_t n = 0;
@@ -73,7 +74,7 @@ namespace imath {
 			return pos;
 		}
 
-
+#if 0
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	機能テスト用
@@ -104,12 +105,13 @@ namespace imath {
 				}
 			}
 		}
-
+#endif
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	開始、終点を設定（１８０度以内である事）@n
-					※円にする場合「開始」と「終点」を逆にしてもう一度呼ぶ
+			@brief	開始、終点を設定 @n
+					「中心位置」から「開始位置」に対する「終端位置」は、@n
+					距離が異なる場合は「不整合」とする。
 			@param[in]	sta	開始位置
 			@param[in]	cen	中心位置
 			@param[in]	fin	終端位置
@@ -137,7 +139,7 @@ namespace imath {
 			term_   = fin;
 			cw_ = cw;
 			oct_ = octant_(d1);
-
+// utils::format("Oct: %d\n") % oct_;
 			rad_ = len0 * 2;
 			rad_sqr_ = rad_ * rad_;
 			pos_.x = d0.x;
@@ -165,28 +167,34 @@ namespace imath {
 				if(cw_) pos_.x += 2;
 				else pos_.x -= 2;
 				pos_.y = std::sqrt(rad_sqr_ - pos_.x * pos_.x);
+
 				break;
 			case 1:
 			case 2:
 				if(cw_) pos_.y -= 2;
 				else pos_.y += 2;
 				pos_.x = std::sqrt(rad_sqr_ - pos_.y * pos_.y);
+
 				break;
 			case 3:
 			case 4:
 				if(cw_) pos_.x -= 2;
 				else pos_.x += 2;
 				pos_.y = -std::sqrt(rad_sqr_ - pos_.x * pos_.x);
+
 				break;
 			case 5:
 			case 6:
 				if(cw_) pos_.y += 2;
 				else pos_.y -= 2;
 				pos_.x = -std::sqrt(rad_sqr_ - pos_.y * pos_.y);
+
 				break;
 			}
 			if(oct != oct_) return false;
 
+// utils::format("Fin: %d, %d\n") % fin_.x % fin_.y;
+// utils::format("Pos: %d, %d\n") % pos_.x % pos_.y;
 			switch(oct_) {
 			case 0:
 			case 1:
@@ -235,8 +243,14 @@ namespace imath {
 		vtx::ipos get_position() const noexcept
 		{
 			vtx::ipos p;
-			p.x = (pos_.x + 1) / 2 + center_.x;
-			p.y = (pos_.y + 1) / 2 + center_.y;
+			int32_t dx = 0;
+			if(pos_.x < 0) dx = -1; 
+			else if(pos_.x > 0) dx = 1;
+			int32_t dy = 0;
+			if(pos_.y < 0) dy = -1; 
+			else if(pos_.y > 0) dy = 1;
+			p.x = (pos_.x + dx) / 2 + center_.x;
+			p.y = (pos_.y + dy) / 2 + center_.y;
 			return p;
 		}
 	};
