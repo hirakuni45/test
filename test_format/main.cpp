@@ -3,17 +3,28 @@
 
 #include "format.hpp"
 
+namespace {
+
+	class sqri {
+	public:
+		int operator () (int in) {
+			return in * in;
+		}
+	}; 
+
+}
+
 int main(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
-	using namespace utils;
-
 	{
-		int a = 1000;
-		format("%d\n") % a;
+		sqri sq;
+		int a = sq(100);
+		utils::format("%d\n") % a;
 	}
 
+	using namespace utils;
 	{
 		static const char* t = { "Asdfg" };
 		format("'%s'\n") % t;

@@ -46,11 +46,12 @@ int main(int argc, char* argv[])
 	{  // test 4
 		int a = 0;
 		uint32_t b = 0;
+		int c = 0;
 
-		static const char* inp = { "-99 100" };
-		auto n = (input("%d[, ]%x", inp) % a % b).num();
+		static const char* inp = { "-99 100,200" };
+		auto n = (input("%d[, ]%x,%d", inp) % a % b % c).num();
 		std::cout << "Num: " << n << std::endl;
-		std::cout << "1ST: " << a << ", 2ND: " << b << std::endl;
+		std::cout << "1ST: " << a << ", 2ND: " << b << ", 3RD: " << c << std::endl;
 	}
 #endif
 
