@@ -14,10 +14,51 @@ namespace {
 
 }
 
+// 速度検査
+// #define SPEED_TEST
+
 int main(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
+#ifdef SPEED_TEST
+	std::string s;
+	if(argc >= 2) s = argv[1];
+//	const long maxIter = 2000000L;
+//	const long maxIter = 50000L;
+	const long maxIter = 1;
+	if(s == "printf") {
+        // libc version
+        for(long i = 0; i < maxIter; ++i)
+            printf("%0.10f:%04d:%+g:%s:%p:%c:%%\n",
+                1.234, 42, 3.13, "str", (void*)1000, (int)'X');
+	}
+	else if(s == "boost") {
+		for(long i = 0; i < maxIter; ++i) {
+			std::cout << boost::format("%0.10f:%04d:%+g:%s:%p:%c:%%\n")
+			% 1.234 % 42 % 3.13 % "str" % (void*)1000 % (int)'X';
+		}
+	}
+	else if(s == "format") {
+        for(long i = 0; i < maxIter; ++i) {
+            utils::format("%0.10f:%04d:%+g:%s:%x:%c:%%\n")
+                % 1.234 % 42 % 3.13 % "str" % (uint32_t)1000 % (int)'X';
+		}
+	}
+	return 0;
+#endif
+
+	{
+		float a = 1.0f;
+		auto err = (utils::format("Fail int: %d\n") % a).get_error();
+		utils::format("Error: %d\n") % static_cast<int>(err);
+	}
+
+	{
+		float a = 121.0f;
+		utils::format("Format g(121.0): %g\n") % a;
+	}
+
 	{
 		sqri sq;
 		int a = sq(100);
@@ -44,6 +85,10 @@ int main(int argc, char* argv[])
 		format("%d, '%s', %7.3f, %6.2f\n") % i % str % a % b;
 	}
 
+	{  // 固定小数点
+		uint16_t val = (1 << 10) + 500; 
+		format("Fixed point: %4.3:10y\n") % val;
+	}
 
 	{
 		float x = 1.0f;

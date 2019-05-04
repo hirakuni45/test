@@ -1,27 +1,35 @@
 #pragma once
 //=====================================================================//
 /*! @file
-    @brief  format クラス @n
-			・安全性を考慮した、[s]printf 表示に準じた C++ クラス
-			・二進表記として、「%b」をサポート
+    @brief  utils::format クラス @n
+			・安全性を考慮した、[s]printf 表示に準じたクラス @n
+			・二進表記として、「%b」をサポート @n
 			・固定小数点表示「%N.M:Ly」形式をサポート @n
 			※ N：全桁数、M：小数部桁数、L：小数部のビット数 @n
 			※ N には、小数点、符号が含まれる @n
-			Ex: %1.2:8y ---> 256 で 1.00、128 で 0.50、384 で 1.50 と @n
+			Ex: %3.2:8y ---> 256 で 1.00、128 で 0.50、384 で 1.50 @n
 			と表示される。@n
-			・標準出力として「write(1, const void *, size_t len)」を使う @n
-			※最低限、この関数を実装する必要がある。 @n
+            ・NO_FLOAT_FORM を有効にすると、float 関係の機能を無効にでき @n
+            メモリを節約出来る。@n
 			+ 2017/06/11 20:00- 標準文字出力クラスの再定義、実装 @n 
 			+ 2017/06/11 21:00- 固定文字列クラス向け chaout、実装 @n
 			+ 2017/06/12 14:50- memory_chaoutと、専用コンストラクター実装 @n
 			+ 2017/06/14 05:34- memory_chaout size() のバグ修正 @n
-			Copyright 2013,2017 Kunihito Hiramatsu
+			+ 2018/11/20 05:10- float を無効にするオプションを復活 @n
+			+ 2019/05/04 14:44- %c を指定した場合、整数を全て受け付け、範囲を検査 @n
+			+ 2019/05/04 15:33- %g、%G 末尾の桁に '0' がある場合除去する
     @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2013, 2019 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
 //=====================================================================//
 #include <type_traits>
 #include <unistd.h>
+#include <cstring>
 
+// float を無効にする場合（８ビット系マイコンでのメモリ節約用）
+// #define NO_FLOAT_FORM
 /* 
   e, E
      double 引き数を丸めて [-]d.ddde±dd の形に変換する。 小数点の前には一桁の数字があり、
@@ -114,9 +122,10 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		stdout_chaout() : size_(0) { } 
 
-		void operator() (char ch) {
+		void operator() (char ch)
+		{
 			char tmp = ch;
-			write(1, &tmp, 1);  // FD by stdout
+			write(STDOUT_FILENO, &tmp, 1);
 			++size_;
 		}
 
@@ -134,7 +143,7 @@ namespace utils {
 	class stdout_term {
 	public:
 		void operator() (const char* s, uint16_t l) {
-			write(1, s, l);  // FD by stdout
+			write(STDOUT_FILENO, s, l);
 		}
 	};
 
@@ -262,6 +271,7 @@ namespace utils {
 			null,		///< 無効なポインター
 			unknown,	///< 不明な「型」
 			different,	///< 異なる「型」
+			over,		///< 数値の領域外（%c で char が扱える数値以外）
 		};
 
 	private:
@@ -405,7 +415,7 @@ namespace utils {
 		}
 
 
-		void out_str_(const char* str, char sign, uint8_t n) {
+		void out_str_(const char* str, char sign, uint16_t n) {
 			if(zerosupp_) {
 				if(sign != 0) { chaout_(sign); }
 			}
@@ -536,10 +546,10 @@ namespace utils {
 			return m;
 		}
 
+
 		template <typename VAL>
 		void out_fixed_point_(VAL v, uint8_t fixpoi, bool sign)
 		{
-// std::cout << "Shift: " << static_cast<int>(fixpoi) << std::endl;
 			// 四捨五入処理用 0.5
 			VAL m = 0;
 			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
@@ -566,28 +576,38 @@ namespace utils {
 			}
 
 			if(point_ == 0) return;
-			chaout_('.');
 
-			uint8_t l = 0;
+			char* out = buff_;
+			*out++ = '.';
+			uint16_t l = 0;
 			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
 				VAL dec = v & make_mask_(fixpoi);
 				while(dec > 0) {
 					dec *= 10;
 					VAL n = dec >> fixpoi;
-					chaout_(n + '0');
+					*out++ = n + '0';
 					dec -= n << fixpoi;
 					++l;
 					if(l >= point_) break;
 				}
 			}
 			while(l < point_) {
-				chaout_('0');
+				*out++ = '0';
 				++l;
 			}
+			if(mode_ == mode::REAL_AUTO) {
+				while (*(out - 1) == '0') {
+					out--;
+				}
+				if(*(out - 1) == '.') out--;		
+			}
+			*out++ = 0;
+			str_(buff_);			
 		}
 
-
-		void out_real_(float v, char e) {
+#ifndef NO_FLOAT_FORM
+		void out_real_(float v, char e)
+		{
 			void* p = &v;
 			uint32_t fpv = *(uint32_t*)p;
 			bool sign = fpv >> 31;
@@ -640,6 +660,7 @@ namespace utils {
 				out_dec_(dexp);
 			}
 		}
+#endif
 
 	public:
 		//-----------------------------------------------------------------//
@@ -736,10 +757,10 @@ namespace utils {
 			if(mode_ == mode::STR) {
 				if(val == nullptr) {
 					static const char* nullstr = { "(nullptr)" };
-					out_str_(nullstr, 0, strlen(nullstr));					
+					out_str_(nullstr, 0, std::strlen(nullstr));					
 				} else {
 					zerosupp_ = false;
-					uint8_t n = 0;
+					uint16_t n = 0;
 					const char* p = val;
 					while((*p++) != 0) { ++n; }
 					out_str_(val, 0, n);
@@ -773,7 +794,7 @@ namespace utils {
 					out_str_(nullstr, 0, strlen(nullstr));					
 				} else {
 					zerosupp_ = false;
-					uint8_t n = 0;
+					uint16_t n = 0;
 					const char* p = val;
 					while((*p++) != 0) { ++n; }
 					out_str_(val, 0, n);
@@ -803,11 +824,15 @@ namespace utils {
 			}
 
 			if(std::is_integral<T>::value) {
-				if(mode_ == mode::CHA && sizeof(T) == 1) {
-					chaout_(val);
-				} else {
-					decimal_(static_cast<int32_t>(val), std::is_signed<T>::value);
+				if(mode_ == mode::CHA) {
+					auto chn = static_cast<int32_t>(val);
+					if(chn > -128 && chn < 128) {
+						chaout_(chn);
+					} else {  // over range
+						error_ = error::over;
+					}
 				}
+#ifndef NO_FLOAT_FORM
 			} else if(std::is_floating_point<T>::value) {
 				if(num_ == 0 && !zerosupp_ && point_ == 0) {
 					num_ = 6;
@@ -830,6 +855,7 @@ namespace utils {
 					error_ = error::different;
 					break;
 				}
+#endif
 			} else {
 				error_ = error::unknown;
 			}
