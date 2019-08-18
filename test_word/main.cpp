@@ -53,8 +53,7 @@
 						++n;
 					} else if(bc != sch && ch == sch) {
 						if(out) {
-							*dst = 0;
-							return true;
+							break;
 						}
 					}
 					if(ch == 0) break;
@@ -66,7 +65,46 @@
 				}
 			}
 			*dst = 0;
-			return false;
+			return out;
+		}
+
+
+		static bool cmp_word(const char* src, uint32_t argc, const char* key, char sch = ' ') noexcept
+		{
+			if(src == nullptr || key == nullptr) return false;
+
+			uint32_t n = 0;
+			char bc = sch;
+			bool bsc = false;
+			bool out = false;
+			while(1) {
+				char ch = *src++;
+				if(ch == '\\') {
+					bsc = true;
+					continue;
+				} else if(bsc) {
+					bsc = false;
+				} else {
+					if(bc == sch && ch != sch) {
+						if(n == argc) {
+							out = true;
+						}
+						++n;
+					} else if(bc != sch && ch == sch) {
+						if(out) {
+							break;
+						}
+					}
+					if(ch == 0) break;
+					bc = ch;
+				}
+				if(out) {
+					if(ch != *key) return false;
+					++key; 
+				}
+			}
+			if(*key == 0) return true;
+			else return false;
 		}
 
 
@@ -113,5 +151,14 @@ int main(int argc, char* argv[])
 		n = 2;
 		get_word(src, n, dst, sizeof(dst));
 		utils::format("%d: '%s'\n") % n % dst;
+	}
+
+
+	{
+		const char* src = "aaa bbb\\ ccc ddd";
+		int f0 = cmp_word(src, 1, "bbb cc");
+		int f1 = cmp_word(src, 1, "bbb ccc");
+		int f2 = cmp_word(src, 1, "bbb cccc");
+		utils::format("%d, %d, %d\n") % f0 % f1 % f2;
 	}
 }
