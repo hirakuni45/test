@@ -1,5 +1,5 @@
 #pragma once
-//=====================================================================//
+//=============================================================================//
 /*! @file
     @brief  utils::format クラス @n
 			・安全性を考慮した、[s]printf 表示に準じたクラス @n
@@ -11,22 +11,31 @@
 			と表示される。@n
             ・NO_FLOAT_FORM を有効にすると、float 関係の機能を無効にでき @n
             メモリを節約出来る。@n
+			・組み込みマイコンでは、64 ビット整数、浮動小数点など、リソースを @n
+			多く消費する為、サポートしていません。（オプションでサポートを追加する予定）
 			+ 2017/06/11 20:00- 標準文字出力クラスの再定義、実装 @n 
 			+ 2017/06/11 21:00- 固定文字列クラス向け chaout、実装 @n
 			+ 2017/06/12 14:50- memory_chaoutと、専用コンストラクター実装 @n
 			+ 2017/06/14 05:34- memory_chaout size() のバグ修正 @n
 			+ 2018/11/20 05:10- float を無効にするオプションを復活 @n
 			+ 2019/05/04 14:44- %c を指定した場合、整数を全て受け付け、範囲を検査 @n
-			+ 2019/05/04 15:33- %g、%G 末尾の桁に '0' がある場合除去する
+			+ 2019/05/04 15:33- %g、%G 末尾の桁に '0' がある場合除去する。@n
+			+ 2019/12/02 10:50- write 関数の代わりに putchar へ切り替えるオプションを追加 @n
+			! 2019/12/03 20:00- %nd の場合に、表示が重複する不具合修正。@n
+			+ 2019/12/03 21:54- インクルードファイルの修追加。
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2013, 2019 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
-//=====================================================================//
+//=============================================================================//
 #include <type_traits>
 #include <unistd.h>
+#include <cstdint>
 #include <cstring>
+
+// 最終的な出力として putchar を使う場合有効にする（通常は write [stdout] 関数）
+// #define USE_PUTCHAR
 
 // float を無効にする場合（８ビット系マイコンでのメモリ節約用）
 // #define NO_FLOAT_FORM
@@ -62,30 +71,34 @@ namespace utils {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  無効出力ファンクタ @n
-				※全ての動作が無効
+				※全ての動作を無効にして、機能を取り除く。 @n
+				※最適化をしない場合、全てを取り除く事は出来ない。
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class null_chaout {
 	public:
+		typedef unsigned int uint;
 
-		void operator() (char ch) {
-		}
+		void operator() (char ch) noexcept { }
 
-		void clear() { };
+		void clear() noexcept { };
 
-		uint32_t size() const { return 0; }
+		uint size() const noexcept { return 0; }
 	};
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  サイズ出力ファンクタ @n
-				※出力サイズのみ有効
+				※出力サイズを調査する場合などに使う。
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class size_chaout {
+	public:
+		typedef unsigned int uint;
 
-		uint32_t	size_;
+	private:
+		uint	size_;
 
 	public:
 		//-----------------------------------------------------------------//
@@ -93,15 +106,15 @@ namespace utils {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		size_chaout() : size_(0) { } 
+		size_chaout() noexcept : size_(0) { } 
 
-		void operator() (char ch) {
+		void operator() (char ch) noexcept {
 			++size_;
 		}
 
-		void clear() { size_ = 0; };
+		void clear() noexcept { size_ = 0; };
 
-		uint32_t size() const { return size_; }
+		uint size() const noexcept { return size_; }
 	};
 
 
@@ -111,8 +124,11 @@ namespace utils {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class stdout_chaout {
+	public:
+		typedef unsigned int uint;
 
-		uint32_t	size_;
+	private:
+		uint	size_;
 
 	public:
 		//-----------------------------------------------------------------//
@@ -120,18 +136,75 @@ namespace utils {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		stdout_chaout() : size_(0) { } 
+		stdout_chaout() noexcept : size_(0) { } 
 
-		void operator() (char ch)
+		void operator() (char ch) noexcept
 		{
+#ifdef USE_PUTCHAR
+			putchar(ch);
+#else
 			char tmp = ch;
 			write(STDOUT_FILENO, &tmp, 1);
+#endif
 			++size_;
 		}
 
-		void clear() { size_ = 0; };
+		void clear() noexcept { size_ = 0; };
 
-		uint32_t size() const { return size_; }
+		uint size() const noexcept { return size_; }
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  標準出力バッファリングファンクタ
+		@param[in]	BFN		バッファサイズ
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <uint32_t BFN>
+	class stdout_buffered_chaout {
+	public:
+		typedef unsigned int uint;
+
+	private:
+		char	buff_[BFN];
+		uint	pos_;
+		uint	size_;
+
+	public:
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  コンストラクター
+		*/
+		//-----------------------------------------------------------------//
+		stdout_buffered_chaout() noexcept : pos_(0), size_(0) { } 
+
+		void operator() (char ch) noexcept {
+			buff_[pos_] = ch;
+			++pos_;
+			if(ch == '\n' || pos_ >= BFN) {
+				flush();
+			}
+			++size_;
+		}
+
+		void clear() noexcept { size_ = 0; };
+
+		uint32_t size() const noexcept { return size_; }
+
+		void flush() noexcept
+		{
+			if(pos_ == 0) return;
+
+#ifdef USE_PUTCHAR
+			for(uint i = 0; i < pos_; ++i) {
+				putchar(buff_[i]);
+			}
+#else
+			write(STDOUT_FILENO, buff_, pos_);
+#endif
+			pos_ = 0;
+		}
 	};
 
 
@@ -142,8 +215,14 @@ namespace utils {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class stdout_term {
 	public:
-		void operator() (const char* s, uint16_t l) {
+		void operator() (const char* s, uint16_t l) noexcept {
+#ifdef USE_PUTCHAR
+			for(uint i = 0; i < l; ++i) {
+				putchar(s[i]);
+			}
+#else
 			write(STDOUT_FILENO, s, l);
+#endif
 		}
 	};
 
@@ -178,9 +257,9 @@ namespace utils {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		string_chaout() : str_(), term_() { }
+		string_chaout() noexcept : str_(), term_() { }
 
-		void operator () (char ch) {
+		void operator () (char ch) noexcept {
 			str_ += ch;
 			if(str_.size() >= str_.capacity()) {
 				term_(str_.c_str(), str_.size());
@@ -188,25 +267,25 @@ namespace utils {
 			}			
 		}
 
-		void clear() {
+		void clear() noexcept {
 			if(str_.size() > 0) {
 				term_(str_.c_str(), str_.size());
 			}
 			str_.clear();
 		}
 
-		uint32_t size() const { return str_.size(); }
+		auto size() const noexcept { return str_.size(); }
 
-		void flush() {
+		void flush() noexcept {
 			if(str_.size() > 0) {
 				term_(str_.c_str(), str_.size());
 				str_.clear();
 			}
 		}
 
-		STR& at_str() { return str_; }
+		STR& at_str() noexcept { return str_; }
 
-		TERM& at_term() { return term_; }
+		TERM& at_term() noexcept { return term_; }
 	};
 
 
@@ -227,28 +306,40 @@ namespace utils {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		memory_chaout() : dst_(nullptr), limit_(0), pos_(0) { }
+		memory_chaout() noexcept : dst_(nullptr), limit_(0), pos_(0) { }
 
-		void set(char* dst, uint32_t limit)
+
+		bool set(char* dst, uint32_t limit) noexcept
 		{
-			if(dst_ != dst || limit_ != limit) {  // ポインター、サイズ、どちらか異なる場合は常にリセット
+			if(dst == nullptr || limit <= 1) {
+				return false;
+			}
+			limit--;
+
+			// ポインター、サイズ、どちらか異なる場合は常にリセット
+			if(dst_ != dst || limit_ != limit) {
 				pos_ = 0;
 			}
 			dst_ = dst;
 			limit_ = limit;
+
+			return true;
 		}
 
-		void operator () (char ch) {
-			if(pos_ < (limit_ - 1)) {
+
+		void operator () (char ch) noexcept {
+			if(pos_ < limit_) {
 				dst_[pos_] = ch;
 				++pos_;
 				dst_[pos_] = 0;
 			}
 		}
 
-		void clear() { pos_ = 0; }
 
-		uint32_t size() const { return pos_; }
+		void clear() noexcept { pos_ = 0; }
+
+
+		uint32_t size() const noexcept { return pos_; }
 	};
 
 
@@ -276,20 +367,21 @@ namespace utils {
 
 	private:
 		enum class mode : uint8_t {
-			CHA,		///< 文字
-			STR,		///< 文字列
-			BINARY,		///< ２進
-			OCTAL,		///< ８進
-			DECIMAL,	///< １０進
-			U_DECIMAL,	///< １０進（符号無し）
-			HEX_CAPS,	///< １６進（大文字）
-			HEX,		///< １６進（小文字）
-			FIXED_REAL,	///< 固定小数点
-			REAL,		///< 浮動小数点
+			CHA,			///< 文字
+			STR,			///< 文字列
+			BINARY,			///< ２進
+			OCTAL,			///< ８進
+			DECIMAL,		///< １０進
+			U_DECIMAL,		///< １０進（符号無し）
+			HEX_CAPS,		///< １６進（大文字）
+			HEX,			///< １６進（小文字）
+			FIXED_REAL,		///< 固定小数点
+			REAL,			///< 浮動小数点
 			EXPONENT_CAPS,	///< 浮動小数点 exp 形式(E)
-			EXPONENT,	///< 浮動小数点 exp 形式(e)
-			REAL_AUTO,	///< 浮動小数点自動
-			NONE		///< 不明
+			EXPONENT,		///< 浮動小数点 exp 形式(e)
+			REAL_AUTO_CAPS,	///< 浮動小数点自動(G)
+			REAL_AUTO,		///< 浮動小数点自動(g)
+			NONE			///< 不明
 		};
 
 		static CHAOUT	chaout_;
@@ -298,14 +390,15 @@ namespace utils {
 
 		char		buff_[34];
 
-		error		error_;
+		uint16_t	num_;
 
-		uint8_t		num_;
 		uint8_t		point_;
 		uint8_t		bitlen_;
+		error		error_;
 		mode		mode_;
 		bool		zerosupp_;
 		bool		sign_;
+		bool		nega_;
 
 		void str_(const char* str) {
 			char ch;
@@ -319,6 +412,7 @@ namespace utils {
 			mode_ = mode::NONE;
 			zerosupp_ = false;
 			sign_ = false;
+			nega_ = false;
 		}
 
 		void next_() {
@@ -339,6 +433,8 @@ namespace utils {
 				if(md != apmd::none) {
 					if(ch == '+') {
 						sign_ = true;
+					} else if(ch == '-') {
+						nega_ = true;
 					} else if(ch >= '0' && ch <= '9') {
 						ch -= '0';
 						if(md == apmd::num) {
@@ -370,7 +466,7 @@ namespace utils {
 					} else if(ch == 'o') {
 						mode_ = mode::OCTAL;
 						return;
-					} else if(ch == 'd') {
+					} else if(ch == 'd' || ch == 'i') {
 						mode_ = mode::DECIMAL;
 						return;
 					} else if(ch == 'u') {
@@ -394,14 +490,15 @@ namespace utils {
 					} else if(ch == 'E') {
 						mode_ = mode::EXPONENT_CAPS;
 						return;
-					} else if(ch == 'g' || ch == 'G') {
+					} else if(ch == 'g') {
 						mode_ = mode::REAL_AUTO;
+						return;
+					} else if(ch == 'G') {
+						mode_ = mode::REAL_AUTO_CAPS;
 						return;
 					} else if(ch == '%') {
 						chaout_(ch);
 						md = apmd::none;
-					} else if(ch == '-') {  // 無視する
-
 					} else {
 						error_ = error::unknown;
 						return;
@@ -415,22 +512,28 @@ namespace utils {
 		}
 
 
-		void out_str_(const char* str, char sign, uint16_t n) {
-			if(zerosupp_) {
-				if(sign != 0) { chaout_(sign); }
-			}
-			if(n && n < num_) {
-				uint8_t spc = num_ - n;
-				while(spc) {
-					--spc;
-					if(zerosupp_) chaout_('0');
-					else chaout_(' ');
+		void out_str_(const char* str, char sign, uint16_t n)
+		{
+			if(nega_) { str_(str); }
+
+			if(n > 0 && n < num_) {
+				auto spc = num_ - n;
+				if(zerosupp_) {
+					if(sign != 0) { chaout_(sign); }
+					while(spc) {
+						--spc;
+						chaout_('0');
+					}
+				} else {
+					auto spc = num_ - n;
+					while(spc) {
+						--spc;
+						chaout_(' ');
+					}
 				}
 			}
-			if(!zerosupp_) {
-				if(sign != 0) { chaout_(sign); }
-			}
-			str_(str);
+
+			if(!nega_) { str_(str); }
 		}
 
 
@@ -560,6 +663,7 @@ namespace utils {
 					--n;
 				}
 			}
+
 			char sch = 0;
 			if(sign) sch = '-';
 			else if(sign_) sch = '+';
@@ -595,7 +699,7 @@ namespace utils {
 				*out++ = '0';
 				++l;
 			}
-			if(mode_ == mode::REAL_AUTO) {
+			if(mode_ == mode::REAL_AUTO || mode_ == mode::REAL_AUTO_CAPS) {
 				while (*(out - 1) == '0') {
 					out--;
 				}
@@ -656,11 +760,27 @@ namespace utils {
 				chaout_(e);
 				zerosupp_ = true;
 				sign_ = true;
-				num_ = 3;
+				num_ = 2;
 				out_dec_(dexp);
 			}
 		}
 #endif
+
+		void str_sub_(const char* val)
+		{
+			if(mode_ == mode::STR) {
+				if(val == nullptr) {
+					static const char* nullstr = { "(nullptr)" };
+					out_str_(nullstr, 0, std::strlen(nullstr));
+					error_ = error::null;
+				} else {
+					zerosupp_ = false;
+					out_str_(val, 0, std::strlen(val));
+				}
+			} else {
+				error_ = error::different;
+			}
+		}
 
 	public:
 		//-----------------------------------------------------------------//
@@ -671,10 +791,11 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		basic_format(const char* form) noexcept :
 			form_(form),
-			error_(error::none),
-			num_(0), point_(0),
+			num_(0),
+			point_(0),
 			bitlen_(0),
-			mode_(mode::NONE), zerosupp_(false), sign_(false)
+			error_(error::none),
+			mode_(mode::NONE), zerosupp_(false), sign_(false), nega_(false)
 		{
 			next_();
 		}
@@ -691,9 +812,9 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		basic_format(const char* form, char* buff, uint32_t size, bool append = false) noexcept :
 			form_(form),
-			error_(error::none),
 			num_(0), point_(0),
 			bitlen_(0),
+			error_(error::none),
 			mode_(mode::NONE), zerosupp_(false), sign_(false)
 		{
 			chaout_.set(buff, size);
@@ -754,20 +875,7 @@ namespace utils {
 				return *this;
 			}
 
-			if(mode_ == mode::STR) {
-				if(val == nullptr) {
-					static const char* nullstr = { "(nullptr)" };
-					out_str_(nullstr, 0, std::strlen(nullstr));					
-				} else {
-					zerosupp_ = false;
-					uint16_t n = 0;
-					const char* p = val;
-					while((*p++) != 0) { ++n; }
-					out_str_(val, 0, n);
-				}
-			} else {
-				error_ = error::different;
-			}
+			str_sub_(val);
 
 			reset_();
 			next_();
@@ -788,20 +896,7 @@ namespace utils {
 				return *this;
 			}
 
-			if(mode_ == mode::STR) {
-				if(val == nullptr) {
-					static const char* nullstr = { "(nullptr)" };
-					out_str_(nullstr, 0, strlen(nullstr));					
-				} else {
-					zerosupp_ = false;
-					uint16_t n = 0;
-					const char* p = val;
-					while((*p++) != 0) { ++n; }
-					out_str_(val, 0, n);
-				}
-			} else {
-				error_ = error::different;
-			}
+			str_sub_(val);
 
 			reset_();
 			next_();
@@ -831,6 +926,8 @@ namespace utils {
 					} else {  // over range
 						error_ = error::over;
 					}
+				} else {
+					decimal_(static_cast<int32_t>(val), std::is_signed<T>::value);
 				}
 #ifndef NO_FLOAT_FORM
 			} else if(std::is_floating_point<T>::value) {
@@ -848,6 +945,7 @@ namespace utils {
 				case mode::EXPONENT:
 					out_real_(val, 'e');
 					break;
+				case mode::REAL_AUTO_CAPS:
 				case mode::REAL_AUTO:
 					out_real_(val, 0);
 					break;
@@ -868,7 +966,8 @@ namespace utils {
 
 	template <class CHAOUT> CHAOUT basic_format<CHAOUT>::chaout_;
 
-	typedef basic_format<stdout_chaout> format;
+	typedef basic_format<stdout_buffered_chaout<256> > format;
+	typedef basic_format<stdout_chaout> nformat;
 	typedef basic_format<memory_chaout> sformat;
 	typedef basic_format<null_chaout> null_format;
 	typedef basic_format<size_chaout> size_format;
