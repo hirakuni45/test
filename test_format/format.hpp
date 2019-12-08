@@ -22,7 +22,8 @@
 			+ 2019/05/04 15:33- %g、%G 末尾の桁に '0' がある場合除去する。@n
 			+ 2019/12/02 10:50- write 関数の代わりに putchar へ切り替えるオプションを追加 @n
 			! 2019/12/03 20:00- %nd の場合に、表示が重複する不具合修正。@n
-			+ 2019/12/03 21:54- インクルードファイルの修追加。
+			+ 2019/12/03 21:54- インクルードファイルの修追加。@n
+			+ 2019/12/09 03:21- memory_chaout で出力先が設定されていない場合の安全性確保。
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2013, 2019 Kunihito Hiramatsu @n
 				Released under the MIT license @n
