@@ -20,7 +20,10 @@
 			+ 2018/11/20 05:10- float を無効にするオプションを復活 @n
 			+ 2019/05/04 14:44- %c を指定した場合、整数を全て受け付け、範囲を検査 @n
 			+ 2019/05/04 15:33- %g、%G 末尾の桁に '0' がある場合除去する。@n
-			+ 2019/12/02 10:50- write 関数の代わりに putchar へ切り替えるオプションを追加
+			+ 2019/12/02 10:50- write 関数の代わりに putchar へ切り替えるオプションを追加 @n
+			! 2019/12/03 20:00- %nd の場合に、表示が重複する不具合修正。@n
+			+ 2019/12/03 21:54- インクルードファイルの修追加。@n
+			+ 2019/12/09 03:21- memory_chaout で出力先が設定されていない場合の安全性確保。
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2013, 2019 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -306,24 +309,36 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		memory_chaout() noexcept : dst_(nullptr), limit_(0), pos_(0) { }
 
-		void set(char* dst, uint32_t limit) noexcept
+
+		bool set(char* dst, uint32_t limit) noexcept
 		{
-			if(dst_ != dst || limit_ != limit) {  // ポインター、サイズ、どちらか異なる場合は常にリセット
+			if(dst == nullptr || limit <= 1) {
+				return false;
+			}
+			limit--;
+
+			// ポインター、サイズ、どちらか異なる場合は常にリセット
+			if(dst_ != dst || limit_ != limit) {
 				pos_ = 0;
 			}
 			dst_ = dst;
 			limit_ = limit;
+
+			return true;
 		}
 
+
 		void operator () (char ch) noexcept {
-			if(pos_ < (limit_ - 1)) {
+			if(pos_ < limit_) {
 				dst_[pos_] = ch;
 				++pos_;
 				dst_[pos_] = 0;
 			}
 		}
 
+
 		void clear() noexcept { pos_ = 0; }
+
 
 		uint32_t size() const noexcept { return pos_; }
 	};
