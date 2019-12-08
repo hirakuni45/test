@@ -18,10 +18,10 @@
 				} else if(bsc) {
 					bsc = false;
 				} else {
+					if(ch == 0) break;
 					if(bc == sch && ch != sch) { 
 						++n;
 					}
-					if(ch == 0) break;
 					bc = ch;
 				}
 			}
@@ -116,49 +116,59 @@ int main(int argc, char* argv[]);
 int main(int argc, char* argv[])
 {
 	{
-		const char* src = "aaa bbb ccc";
+		const char* src = "";
 		auto n = get_words(src);
-		utils::format("'%s': %u\n") % src % n;
+		utils::format("words: '%s': %u\n\n") % src % n;
 
 		char dst[256];
 		n = 0;
 		get_word(src, n, dst, sizeof(dst));
-		utils::format("%d: '%s'\n") % n % dst;
+		utils::format("getw: '%s': %u\n\n") % src % n;
+	}
+
+	{
+		const char* src = "aaa bbb ccc";
+		auto n = get_words(src);
+		utils::format("words: '%s': %u\n") % src % n;
+
+		char dst[256];
+		n = 0;
+		get_word(src, n, dst, sizeof(dst));
+		utils::format("getw: %d: '%s'\n") % n % dst;
 
 		n = 1;
 		get_word(src, n, dst, sizeof(dst));
-		utils::format("%d: '%s'\n") % n % dst;
+		utils::format("getw: %d: '%s'\n") % n % dst;
 
 		n = 2;
 		get_word(src, n, dst, sizeof(dst));
-		utils::format("%d: '%s'\n") % n % dst;
+		utils::format("getw: %d: '%s'\n\n") % n % dst;
 	}
 
 	{
 		const char* src = "aaa bbb\\ ccc ddd";
 		auto n = get_words(src);
-		utils::format("'%s': %u\n") % src % n;
+		utils::format("words: '%s': %u\n") % src % n;
 
 		char dst[256];
 		n = 0;
 		get_word(src, n, dst, sizeof(dst));
-		utils::format("%d: '%s'\n") % n % dst;
+		utils::format("getw: %d: '%s'\n") % n % dst;
 
 		n = 1;
 		get_word(src, n, dst, sizeof(dst));
-		utils::format("%d: '%s'\n") % n % dst;
+		utils::format("getw: %d: '%s'\n") % n % dst;
 
 		n = 2;
 		get_word(src, n, dst, sizeof(dst));
-		utils::format("%d: '%s'\n") % n % dst;
+		utils::format("getw: %d: '%s'\n\n") % n % dst;
 	}
-
 
 	{
 		const char* src = "aaa bbb\\ ccc ddd";
 		int f0 = cmp_word(src, 1, "bbb cc");
 		int f1 = cmp_word(src, 1, "bbb ccc");
 		int f2 = cmp_word(src, 1, "bbb cccc");
-		utils::format("%d, %d, %d\n") % f0 % f1 % f2;
+		utils::format("cmp: %d, %d, %d\n") % f0 % f1 % f2;
 	}
 }
