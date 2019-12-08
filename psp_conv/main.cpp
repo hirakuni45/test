@@ -3,6 +3,7 @@
 #include "utils/file_io.hpp"
 
 #include "psp_adpcm.hpp"
+#include "vag_conv.hpp"
 
 #include "snd_io/pcm.hpp"
 #include "snd_io/wav_io.hpp"
@@ -11,7 +12,7 @@ namespace {
 
 	void help_(const char* cmd) {
 		auto c = utils::get_file_base(cmd, true);
-		utils::format("PSP Sound data converter (*.PHD, *.PBD to WAV)\n");
+		utils::format("PSP Sound data converter (*.PHD, *.PBD to MVG [Multi VAG])\n");
 		utils::format("usage:\n");
 		utils::format("    %s [options] input-file [output-file]\n") % c.c_str();
 		utils::format("\n");
@@ -29,7 +30,7 @@ namespace {
 	}
 
 
-	bool parse_ppva_(const void* org, uint32_t len, const utils::array_uc& pbd, utils::file_io& fo,
+	bool parse_ppva_(const char* name, const void* org, uint32_t len, const utils::array_uc& pbd, utils::file_io& fo,
 		bool verbose)
 	{
 		const char* p = static_cast<const char*>(org);
@@ -38,9 +39,9 @@ namespace {
 			return false;
 		}
 
-		uint32_t attr_size = get32_(p + 4);
+		uint32_t attr_size  = get32_(p + 4);
 		uint32_t param_size = get32_(p + 8);
-		uint32_t index_low = get32_(p + 16);
+		uint32_t index_low  = get32_(p + 16);
 		uint32_t index_high = get32_(p + 20);
 
 		if(verbose) {
@@ -50,27 +51,61 @@ namespace {
 			utils::format("PPVA index high:     %5d\n") % index_high;
 		}
 
+		std::vector<ps4::vag_conv::OUT> outs;
 		p += 24 + 8;
 		for(uint32_t i = 0; i <= (index_high - index_low); ++i) {
-			uint32_t ofs  = get32_(p);
-			uint32_t fs   = get32_(p + 4);
-			uint32_t size = get32_(p + 8);
+
+			auto ofs  = get32_(p);
+			auto fs   = get32_(p + 4);
+			auto size = get32_(p + 8);
 			p += 16;
 			if(verbose) {
 				utils::format("    Index%d: ofs: %6d, freq: %d [Hz], size: %d\n")
 					% i % ofs % fs % size;
 			}
+
+			al::audio aif(new al::audio_mno16);
+			aif->create(fs, size * 2);
+
 			psp::adpcm dec;
 			bool loop = false;
-			dec.start(0, size, loop);
+			dec.start(size, loop);
 			auto ap = &pbd[ofs];
 			do {
 				auto nap = dec.decode_block(ap);
 				if(nap > ap) {
-					dec.render_raw(fo);
+					dec.render_pcm(aif);
 				}
 				ap = nap;
 			} while(!dec.is_fin()) ;
+
+			ps4::vag_conv vag;
+			char id[16];
+			utils::sformat("%s%03d", id, sizeof(id)) % name % i;
+			auto data = vag.encode(id, aif, false);
+			outs.push_back(data);
+		}
+
+		{  // make header tables: ID(VAGs), NUM, Offset[NUM]
+			fo.put("VAGs");
+			auto l = outs.size();
+			fo.put32(l);
+			uint32_t ofs = 8 + l * 4;
+			if((ofs & 15) != 0) { ofs |= 15; ++ofs; }
+			for(uint32_t i = 0; i < l; ++i) {
+				fo.put32(ofs);
+				ofs += outs[i].size();
+			}
+			l *= 4;
+			l += 8;
+			while((l & 15) != 0) {
+				fo.put_char(0);
+				++l;
+			}
+			for(int i = 0; i < outs.size(); ++i) {
+				auto& data = outs[i];
+				fo.write(&data[0], data.size());
+			}
 		}
 
 		return true;
@@ -125,7 +160,7 @@ int main(int argc, char *argv[])
 	if(out_file != nullptr) {
 		out_name = out_file;
 	} else {
-		out_name = base + ".RAW";
+		out_name = base + ".MVG";
 	}
 
 	if(verbose) {
@@ -180,13 +215,10 @@ int main(int argc, char *argv[])
 		utils::format("Can't open output file: '%s'\n") % out_name.c_str();
 	}
 
-//	al::audio aif(new al::audio_mno16);
-
-	if(!parse_ppva_(&phd[ppva_ofs], ppva_len, pbd, fo, verbose)) {
+	auto fn = utils::get_file_base(base);
+	if(!parse_ppva_(fn.c_str(), &phd[ppva_ofs], ppva_len, pbd, fo, verbose)) {
 		return -1;
 	}
-
-//	al::wav_io wav;
 
 	fo.close();
 }

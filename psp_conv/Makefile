@@ -96,7 +96,7 @@ LIBS	=	$(addprefix -L, $(LIBDIR))
 LIBN	=	$(addprefix -l, $(STDLIBS))
 LIBN	+=	$(addprefix -l, $(OPTLIBS))
 
-LIBN += lib/libhevagdec.lib
+LIBN += lib/libhevagdec.lib lib/vagconv2.lib
 
 #
 # Compiler, Linker Options, Resource_compiler
@@ -180,6 +180,7 @@ strip:
 endif
 
 run:
+#	./$(TARGET) -v SOUND/MAINMAP
 	./$(TARGET) -v BARBALI
 
 clean:

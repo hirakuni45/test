@@ -27,8 +27,6 @@ namespace psp {
 		s16 samples[28];
 		int curSample = 0;
 
-		u32 data_ = 0;
-		u32 read_ = 0;
 		int curBlock_ = -1;
 		int loopStartBlock_ = -1;
 		int numBlocks_ = 0;
@@ -54,15 +52,13 @@ namespace psp {
 		{ }
 
 
-		void start(uint32_t data, uint32_t vagSize, bool loopEnabled)
+		void start(uint32_t vagSize, bool loopEnabled)
 		{
 			loopEnabled_ = loopEnabled;
 			loopAtNextBlock_ = false;
 			loopStartBlock_ = -1;
 			numBlocks_ = vagSize / 16;
 			end_ = false;
-			data_ = data;
-			read_ = data;
 			curSample = 28;
 			curBlock_ = -1;
 			s_1 = 0;	// per block?
@@ -150,7 +146,10 @@ namespace psp {
 
 		void render_pcm(al::audio aif)
 		{
-
+			for(int i = 0; i < 28; ++i) {
+				al::pcm16_m w(samples[i]);
+				aif->put(i + curBlock_ * 28, w);
+			}
 		}
 
 
