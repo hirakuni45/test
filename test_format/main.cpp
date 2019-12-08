@@ -12,6 +12,25 @@ namespace {
 		}
 	}; 
 
+	void list_error_(utils::format::error errc) {
+		switch(errc) {
+		case utils::format::error::null:
+			utils::format("Error: null ptr.\n");
+			break;
+		case utils::format::error::unknown:
+			utils::format("Error: unknown type.\n");
+			break;
+		case utils::format::error::different:
+			utils::format("Error: different type.\n");
+			break;
+		case utils::format::error::over:
+			utils::format("Error: over range.\n");
+			break;
+		default:
+			utils::format("Error: no error.\n");
+			break;
+		}
+	}
 }
 
 // 速度検査
@@ -48,15 +67,47 @@ int main(int argc, char* argv[])
 	return 0;
 #endif
 
-	{
-		float a = 1.0f;
-		auto err = (utils::format("Fail int: %d\n") % a).get_error();
-		utils::format("Error: %d\n") % static_cast<int>(err);
+	{  // %nd
+		int v = 1234;
+		utils::format("--------(8)\n");
+		utils::format("%8d\n") % v;
+		utils::format("--------(2)\n");
+		utils::format("%2d\n") % v;
+	}
+
+	{  // nullptr
+		utils::format("test for 'nullptr form':\n  ");
+		auto errcode = (utils::format(nullptr)).get_error();
+		list_error_(errcode);
+	}
+
+	{  // %s nullptr
+		utils::format("test for 'nullptr const char pointer':\n  ");
+		const char* str = nullptr;
+		auto errcode = (utils::format("STR: '%s'\n") % str).get_error();
+		list_error_(errcode);
 	}
 
 	{
-		float a = 121.0f;
-		utils::format("Format g(121.0): %g\n") % a;
+		utils::format("test for 'different type (int to float)':\n  ");
+		float a = 1.0f;
+		auto errcode = (utils::format("int: %d\n") % a).get_error();
+		list_error_(errcode);
+	}
+
+	{
+		utils::format("test for 'floating point auto(%%g) format':\n");
+		float a = 1210.05f;
+		printf("  printf: %%g(1210.05f): %g\n", a);
+		fflush(stdout);
+		utils::format("  format: %%g(1210.05f): %g\n") % a;
+	}
+
+	{
+		float a = 1000000.0f;
+		printf("  printf: %%e(1000000.0f): %e\n", a);
+		fflush(stdout);
+		utils::format("  format: %%e(1000000.0f): %e\n") % a;
 	}
 
 	{
@@ -88,6 +139,17 @@ int main(int argc, char* argv[])
 	{  // 固定小数点
 		uint16_t val = (1 << 10) + 500; 
 		format("Fixed point: %4.3:10y\n") % val;
+	}
+
+	{  // sformat
+		format("sformat pass 1: in\n");
+		int a = 9817;
+		sformat("%d\n") % a;
+
+		char tmp[4];
+		sformat("%d", tmp, sizeof(tmp)) % a;
+		format("'%s'\n") % tmp;
+		format("sformat pass 1: out\n");
 	}
 
 	{
