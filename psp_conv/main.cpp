@@ -4,6 +4,7 @@
 
 #include "psp_adpcm.hpp"
 #include "vag_conv.hpp"
+#include "phd.hpp"
 
 #include "snd_io/pcm.hpp"
 #include "snd_io/wav_io.hpp"
@@ -15,6 +16,8 @@ namespace {
 		utils::format("PSP Sound data converter (*.PHD, *.PBD to MVG [Multi VAG])\n");
 		utils::format("usage:\n");
 		utils::format("    %s [options] input-file [output-file]\n") % c.c_str();
+		utils::format("    -v verbose\n");
+		utils::format("    -w make WAV file\n");
 		utils::format("\n");
 	}
 
@@ -30,8 +33,55 @@ namespace {
 	}
 
 
-	bool parse_ppva_(const char* name, const void* org, uint32_t len, const utils::array_uc& pbd, utils::file_io& fo,
-		bool verbose)
+	bool parse_pptn_(const void* org, uint32_t len, bool verbose)
+	{
+		const char* p = static_cast<const char*>(org);
+		if(strncmp(p, "PPTN", 4) != 0) {
+			utils::format("PPTN ID: error '%c%c%c%c'\n") % p[0] % p[1] % p[2] % p[3];
+			return false;
+		}
+
+		auto param_size = get32_(p + 8);
+		auto index_low  = get32_(p + 16);
+		auto index_high = get32_(p + 20);
+		if(verbose) {
+			utils::format("PPTN param size: %d\n") % param_size;
+			utils::format("PPTN index low:  %d\n") % index_low;
+			utils::format("PPTN index high: %d\n") % index_high;
+		}
+		p += 32;
+		for(int i = index_low; i <= index_high; ++i) {
+			utils::format("  Index: %d\n") % i;
+			psp::toneParam t;
+			t.set(p);
+			if(verbose) t.list();
+			p += sizeof(psp::toneParam);
+		}
+
+		return true;
+	}
+
+
+	bool parse_pppg_(const void* org, uint32_t len, bool verbose)
+	{
+		const char* p = static_cast<const char*>(org);
+		if(strncmp(p, "PPPG", 4) != 0) {
+			utils::format("PPPG ID: error '%c%c%c%c'\n") % p[0] % p[1] % p[2] % p[3];
+			return false;
+		}
+
+		auto param_size = get32_(p + 8);
+		auto index_low  = get32_(p + 16);
+		auto index_high = get32_(p + 20);
+
+
+
+		return true;
+	}
+
+
+	bool parse_ppva_(const char* name, const void* org, uint32_t len, const utils::array_uc& pbd,
+		utils::file_io& fo, utils::file_io& wf, bool verbose)
 	{
 		const char* p = static_cast<const char*>(org);
 		if(strncmp(p, "PPVA", 4) != 0) {
@@ -108,6 +158,11 @@ namespace {
 			}
 		}
 
+		if(wf.is_open()) {  // Write WAV file..
+			
+
+		}
+
 		return true;
 	}
 }
@@ -119,11 +174,13 @@ int main(int argc, char *argv[])
 	const char* out_file = nullptr;
 
 	bool error = false;
+	bool wav = false;
 	bool verbose = false;
 	for(int i = 1; i < argc; ++i) {
 		if(argv[i][0] == '-') {
 			std::string opt = argv[i];
 			if(opt == "-v") verbose = true;
+			else if(opt == "-w") wav = true;
 			else if(opt == "--verbose") verbose = true;
 			else {
 				utils::format("Illegual options: '%s'\n") % opt.c_str();
@@ -157,16 +214,23 @@ int main(int argc, char *argv[])
 	}
 
 	std::string out_name;
+	std::string wav_name;
 	if(out_file != nullptr) {
 		out_name = out_file;
 	} else {
 		out_name = base + ".MVG";
+	}
+	if(wav) {
+		wav_name = base + ".WAV";
 	}
 
 	if(verbose) {
 		utils::format("PHD file name: '%s'\n") % phd_name.c_str();
 		utils::format("PBD file name: '%s'\n") % pbd_name.c_str();
 		utils::format("OUT file name: '%s'\n") % out_name.c_str();
+		if(!wav_name.empty()) {
+			utils::format("WAV file name: '%s'\n") % wav_name.c_str();
+		}
 	}
 
 	// read PHD
@@ -198,6 +262,16 @@ int main(int argc, char *argv[])
 		utils::format("    PPVA offset: %5d (size: %5d)\n") % ppva_ofs % ppva_len;
 	}
 
+	// Parse PPTN（トーンアトリビュート）
+	if(!parse_pptn_(&phd[pptn_ofs], pptn_len, verbose)) {
+		return -1;
+	}
+
+	// Parse PPPG（プログラムアトリビュート）
+	if(!parse_pppg_(&phd[pppg_ofs], pppg_len, verbose)) {
+		return -1;
+	}
+
 	// read PBD
 	if(!fin.open(pbd_name, "rb")) {
 		utils::format("Can't open PBD file: '%s'\n") % pbd_name.c_str();
@@ -215,9 +289,20 @@ int main(int argc, char *argv[])
 		utils::format("Can't open output file: '%s'\n") % out_name.c_str();
 	}
 
+	utils::file_io wf;
+	if(!wav_name.empty()) {
+//		if(!wf.open(wav_name, "wb")) {
+//			utils::format("Can't open output WAV file: '%s'\n") % wav_name.c_str();
+//		}		
+	}
+
 	auto fn = utils::get_file_base(base);
-	if(!parse_ppva_(fn.c_str(), &phd[ppva_ofs], ppva_len, pbd, fo, verbose)) {
+	if(!parse_ppva_(fn.c_str(), &phd[ppva_ofs], ppva_len, pbd, fo, wf, verbose)) {
 		return -1;
+	}
+
+	if(!wav_name.empty()) {
+//		wf.close();
 	}
 
 	fo.close();
