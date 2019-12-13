@@ -181,7 +181,9 @@ endif
 
 run:
 #	./$(TARGET) -v SOUND/MAINMAP
-	./$(TARGET) -v BARBALI
+#	./$(TARGET) -v BARBALI
+#	./$(TARGET) -v CARD_DEM
+	./$(TARGET) -v MAINMAP
 
 clean:
 	rm -rf $(BUILD) $(TARGET)$(FEXT)

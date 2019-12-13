@@ -11,9 +11,14 @@
 
 namespace {
 
+	static const uint32_t VERSION = 85;
+
+	const void* phd_org_ = nullptr;
+
 	void help_(const char* cmd) {
 		auto c = utils::get_file_base(cmd, true);
 		utils::format("PSP Sound data converter (*.PHD, *.PBD to MVG [Multi VAG])\n");
+		utils::format("Version %d.%02d\n") % (VERSION / 100) % (VERSION % 100);
 		utils::format("usage:\n");
 		utils::format("    %s [options] input-file [output-file]\n") % c.c_str();
 		utils::format("    -v verbose\n");
@@ -51,9 +56,11 @@ namespace {
 		}
 		p += 32;
 		for(int i = index_low; i <= index_high; ++i) {
-			utils::format("  Index: %d\n") % i;
+			if(verbose) {
+				utils::format("  Index: %d\n") % i;
+			}
 			psp::toneParam t;
-			t.set(p);
+			t.load(p);
 			if(verbose) t.list();
 			p += sizeof(psp::toneParam);
 		}
@@ -69,12 +76,28 @@ namespace {
 			utils::format("PPPG ID: error '%c%c%c%c'\n") % p[0] % p[1] % p[2] % p[3];
 			return false;
 		}
+		if(verbose) {
+			utils::format("PPPG:\n");
+		}
 
-		auto param_size = get32_(p + 8);
-		auto index_low  = get32_(p + 16);
-		auto index_high = get32_(p + 20);
-
-
+		p += 4 * 8;
+		for(int i = 0; i < 128; ++i) {
+			auto offset = get32_(p);
+			p += 4;
+			if(offset != 0xffffffff) {
+				utils::format("  bank: %3d\n") % i;
+				auto phd = static_cast<const uint8_t*>(phd_org_);
+				auto pp = &phd[offset];
+				auto count = get32_(pp);
+				utils::format("    toneParamCount: %d\n") % count;
+				pp += 16;
+				for(int i = 0; i < count; ++i) {
+					auto idx = get32_(pp);
+					pp += 4;
+					utils::format("      (%3d)Index: %d\n") % i % idx;
+				}
+			}
+		}
 
 		return true;
 	}
@@ -159,8 +182,6 @@ namespace {
 		}
 
 		if(wf.is_open()) {  // Write WAV file..
-			
-
 		}
 
 		return true;
@@ -242,6 +263,8 @@ int main(int argc, char *argv[])
 	auto phd = utils::read_array(fin);
 	fin.close();
 
+	phd_org_ = &phd[0];
+
 	// check ID
 	if(strncmp(reinterpret_cast<const char*>(&phd[0]), "PPHD8", 5) != 0) {
 		utils::format("PHD ID miss match: '%s'\n") % phd_name.c_str();
@@ -288,6 +311,9 @@ int main(int argc, char *argv[])
 	if(!fo.open(out_name, "wb")) {
 		utils::format("Can't open output file: '%s'\n") % out_name.c_str();
 	}
+
+	// PHD output (PPPG, PPTN)
+	fo.write(&phd[0], phd.size());
 
 	utils::file_io wf;
 	if(!wav_name.empty()) {

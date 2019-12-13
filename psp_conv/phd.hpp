@@ -78,7 +78,7 @@ namespace psp {
 		}
 
 
-		void set(const void* org)
+		void load(const void* org)
 		{
 			auto src = static_cast<const uint32_t*>(org);
 			auto dst = reinterpret_cast<uint32_t*>(this);
@@ -91,5 +91,15 @@ namespace psp {
 		}
 	};
 
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief	PPPG / progParam
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	class progParam {
+	public:
+		uint32_t	toneParamCtx_count;	///< 
+	};
 }
 
