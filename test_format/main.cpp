@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 		int i = 123;
 		float a = 1000.105f;
 		float b = 0.0f;
-		format("%d, '%s', %7.3f, %6.2f\n") % i % str % a % b;
+		format("%d, %d, '%s', %7.3f, %6.2f\n") % i % -i % str % a % b;
 	}
 
 	{  // 固定小数点

@@ -24,6 +24,7 @@
 			! 2019/12/03 20:00- %nd の場合に、表示が重複する不具合修正。@n
 			+ 2019/12/03 21:54- インクルードファイルの修追加。@n
 			+ 2019/12/09 03:21- memory_chaout で出力先が設定されていない場合の安全性確保。
+			! 2019/12/14 11:44- 符号の表示不具合修正。
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2013, 2019 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -531,7 +532,10 @@ namespace utils {
 						--spc;
 						chaout_(' ');
 					}
+					if(sign != 0) { chaout_(sign); }
 				}
+			} else {
+				if(sign != 0) { chaout_(sign); }
 			}
 
 			if(!nega_) { str_(str); }
