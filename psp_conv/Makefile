@@ -183,8 +183,8 @@ run:
 #	./$(TARGET) -v SOUND/MAINMAP
 #	./$(TARGET) -v BARBALI
 #	./$(TARGET) -v CARD_DEM
-	./$(TARGET) -v MAINMAP
-	cp MAINMAP.MVG /d/Git/PrincessCrown/CUSA18554/PrincessCrownPS4/PS4Project/MVG/.
+	./$(TARGET) -v tmp/MAINMAP
+	cp tmp/MAINMAP.MVG /d/Git/PrincessCrown/CUSA18554/PrincessCrownPS4/PS4Project/MVG/.
 
 clean:
 	rm -rf $(BUILD) $(TARGET)$(FEXT)
