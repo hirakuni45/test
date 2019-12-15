@@ -52,6 +52,14 @@ namespace psp {
 		{ }
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	開始
+			@param[in]	vagSize	VAG データサイズ
+			@param[in]	loopEnabled	ループを有効にする場合「true」
+			@return	負の場合、ループ無し
+		*/
+		//-----------------------------------------------------------------//
 		void start(uint32_t vagSize, bool loopEnabled)
 		{
 			loopEnabled_ = loopEnabled;
@@ -66,7 +74,14 @@ namespace psp {
 		}
 
 
-		const uint8_t* decode_block(const uint8_t* read_pointer)
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	PSP 形式 ADPCM データのデコード
+			@param[in]	src		ソース
+			@return	次回ブロックのポインター
+		*/
+		//-----------------------------------------------------------------//
+		const uint8_t* decode_block(const uint8_t* src)
 		{
 			static const uint8_t f[16][2] = {
 				{   0,   0 },
@@ -89,7 +104,7 @@ namespace psp {
 				{   0, 151 },
 			};
 
-			const uint8_t* readp = read_pointer;
+			const uint8_t* readp = src;
 
 			if (curBlock_ == numBlocks_ - 1) {
 				end_ = true;
@@ -101,17 +116,19 @@ namespace psp {
 			predict_nr >>= 4;
 			int flags = *readp++;
 			if (flags == 7) {
-				printf("VAG ending block at %d\n", curBlock_);
+//				utils::format("VAG ending block at %d\n") % curBlock_;
 				end_ = true;
 				return readp;
 			}
 			else if (flags == 6) {
 				loopStartBlock_ = curBlock_;
+///				utils::format("Start loop: %d\n") % loopStartBlock_;
 			}
 			else if (flags == 3) {
 				if (loopEnabled_) {
 					loopAtNextBlock_ = true;
 				}
+///				utils::format("Loop next: %d -> %d\n") % curBlock_ % loopStartBlock_;
 			}
 
 			// Keep state in locals to avoid bouncing to memory.
@@ -139,6 +156,27 @@ namespace psp {
 
 			return readp;
 		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	ループを開始するブロックを取得
+			@return	負の場合、ループ無し
+		*/
+		//-----------------------------------------------------------------//
+		auto get_loop_start() const { return loopStartBlock_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	ループか検査
+			@return	「true」の場合、loop_start からループ
+		*/
+		//-----------------------------------------------------------------//
+		bool is_loop() const { return loopAtNextBlock_; }
+
+
+		uint32_t get_current_block() const { return curBlock_; }
 
 
 		bool is_fin() const { return end_; }

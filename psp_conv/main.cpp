@@ -85,20 +85,25 @@ namespace {
 			auto offset = get32_(p);
 			p += 4;
 			if(offset != 0xffffffff) {
-				utils::format("  bank: %3d\n") % i;
+				if(verbose) {
+					utils::format("  bank: %3d\n") % i;
+				}
 				auto phd = static_cast<const uint8_t*>(phd_org_);
 				auto pp = &phd[offset];
 				auto count = get32_(pp);
-				utils::format("    toneParamCount: %d\n") % count;
+				if(verbose) {
+					utils::format("    toneParamCount: %d\n") % count;
+				}
 				pp += 16;
 				for(int i = 0; i < count; ++i) {
 					auto idx = get32_(pp);
 					pp += 4;
-					utils::format("      (%3d)Index: %d\n") % i % idx;
+					if(verbose) {
+						utils::format("      (%3d) Index: %d\n") % i % idx;
+					}
 				}
 			}
 		}
-
 		return true;
 	}
 
@@ -133,29 +138,43 @@ namespace {
 			auto size = get32_(p + 8);
 			p += 16;
 			if(verbose) {
-				utils::format("    Index%d: ofs: %6d, freq: %d [Hz], size: %d\n")
+				utils::format("    Index%d: ofs: %6d, freq: %d [Hz], size(PSP PBD): %d\n")
 					% i % ofs % fs % size;
 			}
 
 			al::audio aif(new al::audio_mno16);
-			aif->create(fs, size * 2);
+			// 16 バイト単位、２８サンプル
+			aif->create(fs, (size / 16) * 28);
 
 			psp::adpcm dec;
-			bool loop = false;
+			bool loop = true;
 			dec.start(size, loop);
 			auto ap = &pbd[ofs];
+			int loop_start = -1;
+			uint32_t loop_trg = 0;
 			do {
 				auto nap = dec.decode_block(ap);
 				if(nap > ap) {
 					dec.render_pcm(aif);
 				}
+				if(dec.is_loop()) {
+					loop_trg = dec.get_current_block();
+				}
 				ap = nap;
 			} while(!dec.is_fin()) ;
+
+			loop_start = dec.get_loop_start();
+			if(loop_start >= 0) {
+				if(verbose) {
+					utils::format("      Loop top: %d, loop trg: %d [block]\n")
+						% loop_start % loop_trg;
+				}
+			}
 
 			ps4::vag_conv vag;
 			char id[16];
 			utils::sformat("%s%03d", id, sizeof(id)) % name % i;
-			auto data = vag.encode(id, aif, false);
+			auto data = vag.encode(id, aif, loop_start, loop_trg);
 			outs.push_back(data);
 		}
 
