@@ -35,51 +35,87 @@ namespace ps4 {
 			}
 		}
 
+		static uint32_t big4_(const void* src) {
+			const uint8_t* p = static_cast<const uint8_t*>(src);
+			uint32_t v = p[0];
+			v <<= 8;
+			v |= p[1];
+			v <<= 8;
+			v |= p[2];
+			v <<= 8;
+			v |= p[3];
+			return v;
+		}
+
 	public:
-		static OUT encode(const char* name, const al::audio aif, bool loop)
+		static OUT encode(const char* name, const al::audio aif, int loop_start, uint32_t loop_trg)
 		{
 			sceVagConvertInit(SCE_VAG_CONVMODE_STD);
 
 			OUT out;
 
-			uint32_t num = aif->get_samples();
+			auto sample_num = aif->get_samples();
+			auto block_num = sample_num / 28;
 			{
 				short tmp[48 / sizeof(short)];
 				auto rate = aif->get_rate();
 				uint32_t ch = aif->get_chanel();
-				uint32_t loop_top = 0;
-				uint32_t loop_end = 0;
-				if(loop) {
-					loop_end = num - 1;
-				}
 				char n[16] = { 0 };
 				strncpy(n, name, 16);
 				memcpy(&tmp[32 / sizeof(short)], n, 16);
-				sceVagConvertHeader(tmp, SCE_VAG_HDRVER_201, num / 2, rate, ch,
-					loop_top / 2, loop_end / 2);
+				
+/// loop_start = -1;
+/// loop_trg = block_num - 1;
+				auto size = block_num * 16;
+//				if(loop_start < 0) {
+//					size += 16;
+//				}
+				sceVagConvertHeader(tmp, SCE_VAG_HDRVER_201, size, rate, ch, loop_start, loop_trg);
+
+//	utils::format("Block: %d, Loop start: %d, Loop trg: %d\n") % block_num % loop_start % loop_trg;
+///				utils::format("Header: %d, size: %u\n") % sizeof(tmp) % big4_(&tmp[6]);
 				write_(out, tmp, sizeof(tmp));
 			}
 
 			uint32_t pos = 0;
-			while(pos < num) {
+			uint32_t block = 0;
+			while(block < block_num) {
 				short tmp[8];
 				short src[28];
 				short attr = SCE_VAG_BLKATR_1SHOT;
-				for(int i = 0; i < 28; ++i) {
+				if(loop_start >= 0) {
+					if(loop_start == block) { 
+						attr = SCE_VAG_BLKATR_LOOPSTART;
+					} else if(loop_trg == block) {
+						attr = SCE_VAG_BLKATR_LOOPEND;
+					} else {
+						attr = SCE_VAG_BLKATR_LOOPBODY;
+					}
+				} else {
+					if(block == (block_num - 1)) {
+						attr = SCE_VAG_BLKATR_1SHOTEND;
+					}
+				}
+				for(int i = 0; i < SCE_VAG_BLOCKSIZE; ++i) {
 					al::pcm16_m v(0);
-					if((pos + i) < num) {
+					if((pos + i) < sample_num) {
 						aif->get(pos + i, v);
 					}
 					src[i] = v.w;
 				}
-				if((pos + SCE_VAG_BLOCKSIZE) >= num) {
-					attr = SCE_VAG_BLKATR_1SHOTEND;
-				}
 				sceVagConvert(src, tmp, attr);
 				write_(out, tmp, 16);
 				pos += SCE_VAG_BLOCKSIZE;
+				++block;
 			}
-
+#if 0
+			if(loop_start < 0) {
+				short tmp[8];
+				sceVagConvertFin(tmp);
+				write_(out, tmp, 16);
+				++block;
+			}
+#endif
 			return out;
 		}
 	};
