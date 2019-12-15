@@ -77,16 +77,20 @@ namespace ps4 {
 				write_(out, tmp, sizeof(tmp));
 			}
 
+//			if(loop_start >= 0) {
+//				utils::format("Loop trg: %d / %d\n") % loop_trg % block_num;
+//			}
+
 			uint32_t pos = 0;
 			uint32_t block = 0;
 			while(block < block_num) {
 				short tmp[8];
 				short src[28];
-				short attr = SCE_VAG_BLKATR_1SHOT;
+				short attr;
 				if(loop_start >= 0) {
-					if(loop_start == block) { 
+					if(block <= loop_start) { 
 						attr = SCE_VAG_BLKATR_LOOPSTART;
-					} else if(loop_trg == block) {
+					} else if(loop_trg <= block) {
 						attr = SCE_VAG_BLKATR_LOOPEND;
 					} else {
 						attr = SCE_VAG_BLKATR_LOOPBODY;
@@ -94,6 +98,8 @@ namespace ps4 {
 				} else {
 					if(block == (block_num - 1)) {
 						attr = SCE_VAG_BLKATR_1SHOTEND;
+					} else {
+						attr = SCE_VAG_BLKATR_1SHOT;
 					}
 				}
 				for(int i = 0; i < SCE_VAG_BLOCKSIZE; ++i) {
