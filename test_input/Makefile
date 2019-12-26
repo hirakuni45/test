@@ -33,12 +33,7 @@ STDLIBS		=
 
 ifeq ($(SYSTEM),WIN)
 LOCAL_PATH	=	/mingw64
-OPTLIBS		=	opengl32 glfw3 glew32 \
-				pthread \
-				png turbojpeg jpeg openjp2 \
-				freetype \
-				mad tag \
-				z openal
+OPTLIBS		=
 else
 LOCAL_PATH	=	/usr/local
 OPTLIBS		=	glfw3 GLEW \

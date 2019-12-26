@@ -11,6 +11,8 @@ int main(int argc, char* argv[])
 {
 	using namespace utils;
 
+	int error = 0;
+
 #if 0
 	{ // test 1
 		float a;
@@ -95,10 +97,13 @@ int main(int argc, char* argv[])
 		int a;
 		int b;
 		int c;
-		auto n = (input("%4d%4d%4d", inp) % a % b % c).num();
+		auto n = (input(" %3d %3d %3d", inp) % a % b % c).num();
 		std::cout << std::endl;
 		if(n == 3 && a == 100 && b == 250 && c == 300) {
 			std::cout << "Test case 7: OK!\n";
+		} else {
+			std::cout << "Test case 7: NG!\n";
+			++error;
 		}
 		std::cout << "Num: " << n << std::endl;
 		std::cout << "1ST: " << a << std::endl;
@@ -106,4 +111,26 @@ int main(int argc, char* argv[])
 		std::cout << "3RD: " << c << std::endl;
 	}
 #endif
+
+#if 1
+	{  // test8 (auto 機能確認)
+		static const char* inp = { "100 0x9a 0b1101 0o775" };
+		int a[4] = { -1 };
+		auto n = (input("%a %a %a %a", inp) % a[0] % a[1] % a[2] % a[3]).num();
+		std::cout << std::endl;
+		if(n == 4 && a[0] == 100 && a[1] == 0x9a && a[2] == 0b1101 && a[3] == 0775) {
+			std::cout << "Test case 8: OK!\n";
+		} else {
+			std::cout << "Test case 8: NG!\n";
+			++error;
+		}
+		std::cout << "Num: " << n << std::endl;
+		std::cout << "1ST: " << a[0] << std::endl;
+		std::cout << "2ND: " << a[1] << std::endl;
+		std::cout << "3RD: " << a[2] << std::endl;
+		std::cout << "4TH: " << a[3] << std::endl;
+	}
+#endif
+
+	return error;
 }
