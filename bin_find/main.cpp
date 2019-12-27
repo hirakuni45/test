@@ -7,20 +7,29 @@
 
 namespace {
 
-	static const uint32_t VERSION = 50;
+	static const uint32_t VERSION = 75;
+
+	uint32_t dump_length_ = 0;
+	uint32_t dump_block_ = 1;
+	std::string dump_form_text_;
+	bool report_all_ = false;
 
 	void help_(const char* cmd) {
 		auto c = utils::get_file_base(cmd, true);
-		utils::format("binary data finder\n");
+		utils::format("Find binary data (match for binary,text phrase)\n");
 		utils::format("Version %d.%02d\n") % (VERSION / 100) % (VERSION % 100);
 		utils::format("usage:\n");
 		utils::format("    %s [options] input-file\n") % c.c_str();
-		utils::format("    -text phrase\n");
-		utils::format("    -8 byte phrase\n");
-		utils::format("    -l16 little-endian-16 phrase\n");
-		utils::format("    -b16 big-endian-16 phrase\n");
-		utils::format("    -l32 little-endian-32 phrase\n");
-		utils::format("    -b32 big-endian-32 phrase\n");
+		utils::format("    -report-all\n");
+		utils::format("    -text text-phrase\n");
+		utils::format("    -byte byte-phrase\n");
+		utils::format("    -l16 little-endian-16-phrase\n");
+		utils::format("    -b16 big-endian-16-phrase\n");
+		utils::format("    -l32 little-endian-32-phrase\n");
+		utils::format("    -b32 big-endian-32-phrase\n");
+		utils::format("    -dump-length length             (Optional dump length)\n");
+		utils::format("    -dump-block block               (Optional dump block)\n");
+		utils::format("    -dump-form format               (Ascii, Byte, Word(16), Long(32))\n");
 		utils::format("    -v verbose\n");
 		utils::format("\n");
 	}
@@ -251,15 +260,21 @@ namespace {
 			return false;
 		}
 		if(verbose) {
-			utils::format("Input file size: %u (%s)\n") % array.size() % inp.get_path().c_str(); 
+			utils::format("Input file size: %u (%s)\n") % array.size() % inp.get_path().c_str();
+			utils::format("\n");
 		}
 
 		for(size_t pos = 0; pos < (array.size() - num); ++pos) {
 			BIN cmp;
 			get_data_(&array[pos], bin, cmp);
 			if(cmp_data_(bin, cmp)) {
-				utils::format("%08X: ") % pos;
-				dump_(&array[pos], num);
+				auto bks = std::max(num, dump_length_);
+				for(uint32_t i = 0; i < dump_block_; ++i) {
+					utils::format("%08X:") % (pos + i * bks);
+					dump_(&array[pos + i * bks], bks);
+				}
+				utils::format("\n");
+				if(!report_all_) break;
 			}
 		}
 
@@ -276,11 +291,16 @@ int main(int argc, char *argv[])
 	bool verbose = false;
 	auto pt = phrase_type::none;
 	PHRASE phrase;
+	bool dump_length = false;
+	bool dump_block = false;
+	bool dump_form = false;
 	for(int i = 1; i < argc; ++i) {
 		if(argv[i][0] == '-') {
 			std::string opt = argv[i];
 			if(opt == "-v" || opt == "--verbose") {
 				verbose = true;
+			} else if(opt == "-report-all") {
+				report_all_ = true;
 			} else if(opt == "-text") {
 				pt = phrase_type::text;
 			} else if(opt == "-byte") {
@@ -293,6 +313,12 @@ int main(int argc, char *argv[])
 				pt = phrase_type::b16;
 			} else if(opt == "-b32") {
 				pt = phrase_type::b32;
+			} else if(opt == "-dump-length") {
+				dump_length = true;
+			} else if(opt == "-dump-block") {
+				dump_block = true;
+			} else if(opt == "-dump-form") {
+				dump_form = true;
 			} else {
 				utils::format("Illegual options: '%s'\n") % opt.c_str();
 				error = true;
@@ -301,6 +327,19 @@ int main(int argc, char *argv[])
 			if(pt != phrase_type::none) {
 				phrase.emplace_back(pt, argv[i]);
 				pt = phrase_type::none;
+			} else if(dump_length) {
+				if(!(utils::input("%a", argv[i]) % dump_length_).status()) {
+					utils::format("Parse value fail for dump length: '%s'\n") % argv[i];
+				}
+				dump_length = false;
+			} else if(dump_block) {
+				if(!(utils::input("%a", argv[i]) % dump_block_).status()) {
+					utils::format("Parse value fail for dump block: '%s'\n") % argv[i];
+				}
+				dump_block = false;
+			} else if(dump_form) {
+				dump_form_text_ = argv[i];
+				dump_form = false;
 			} else {
 				inp_file = argv[i];
 			}
@@ -314,6 +353,9 @@ int main(int argc, char *argv[])
 
 	if(verbose) {
 		utils::format("Input file: '%s'\n") % inp_file;
+
+		utils::format("Report all: %s\n") % (report_all_ ? "Enable" : "Disable");
+
 		for(auto t : phrase) {
 			std::string ptt = "text";
 			switch(t.type) {
@@ -327,6 +369,12 @@ int main(int argc, char *argv[])
 			}
 			utils::format("Phrase %s: [%s]\n") % ptt.c_str() % t.value.c_str();
 		}
+		if(dump_length_ > 0) {
+			utils::format("Dump optional length: %u\n") % dump_length_;
+		}
+		if(dump_block_ > 1) {
+			utils::format("Dump optional block: %u\n") % dump_block_;
+		}
 	}
 
 	utils::file_io inp;
@@ -338,10 +386,6 @@ int main(int argc, char *argv[])
 	auto ret = scan_(inp, phrase, verbose);
 
 	inp.close();
-
-	if(verbose) {
-		utils::format("\n");
-	}
 
 	return ret ? 0 : -1;
 }

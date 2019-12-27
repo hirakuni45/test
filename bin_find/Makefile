@@ -177,7 +177,7 @@ strip:
 endif
 
 run:
-	./$(TARGET) -v -l16 '0x800, 0, 0' BOOT.BIN
+	./$(TARGET) -v -l16 '10 0 90' -byte '0 1 2' -dump-length 16 -dump-block 54 BOOT.BIN
 
 clean:
 	rm -rf $(BUILD) $(TARGET)$(FEXT)
