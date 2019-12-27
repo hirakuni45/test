@@ -13,6 +13,8 @@ namespace {
 
 	static const uint32_t VERSION = 85;
 
+	uint32_t adpcm_total_ = 0;
+
 	const void* phd_org_ = nullptr;
 
 	void help_(const char* cmd) {
@@ -177,6 +179,7 @@ namespace {
 			auto data = vag.encode(id, aif, loop_start, loop_trg);
 			outs.push_back(data);
 		}
+		adpcm_total_ += index_high - index_low;
 
 		{  // make header tables: ID(VAGs), NUM, Offset[NUM]
 			fo.put("VAGs");
@@ -351,4 +354,8 @@ int main(int argc, char *argv[])
 	}
 
 	fo.close();
+
+	if(verbose) {
+		utils::format("ADPCM Total: %u\n") % adpcm_total_;
+	}
 }
