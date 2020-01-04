@@ -19,9 +19,10 @@
 					// Parse OK! @n
 					format("%d\n") % v; @n
 				} @n
-			+ 2019/12/26 15:30- 数値のオート入力機能追加
+			+ 2019/12/26 15:30- 数値のオート入力機能追加 @n
+			! 2020/01/05 02:52- 変換が失敗した場合に、引数の値を変保持する
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017, 2019 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2020 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
@@ -541,13 +542,22 @@ namespace utils {
 			if(error_ != error::none) return *this;
 
 			if(std::is_floating_point<T>::value) {
-				val = nb_real_<T>();
+				auto tmp = nb_real_<T>();
+				if(error_ == error::none) {
+					val = tmp;
+				}
 			} else {
 				if(mode_ == mode::CHA) {
-					val = inp_();
+					auto tmp = inp_();
+					if(error_ == error::none) {
+						val = tmp;
+					}
 					next_();
 				} else {
-					val = nb_int_(std::is_signed<T>::value);
+					auto tmp = nb_int_(std::is_signed<T>::value);
+					if(error_ == error::none) {
+						val = tmp;
+					}
 				}
 			}
 			return *this;

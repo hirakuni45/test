@@ -1,9 +1,8 @@
 #include <iostream>
-
-#include "input.hpp"
-
 #include <cstdio>
 #include <cstring>
+
+#include "input.hpp"
 
 int main(int argc, char* argv[]);
 
@@ -14,7 +13,7 @@ int main(int argc, char* argv[])
 	int error = 0;
 
 #if 0
-	{ // test 1
+	{ // test
 		float a;
 		int n = std::sscanf("    100.54  ", "%f", &a);
 		std::cout << "sscanf N: " << n << ", " << a << std::endl;
@@ -22,27 +21,75 @@ int main(int argc, char* argv[])
 #endif
 
 #if 1
-	{  // test 2
-		float a;
-		if((input("%f", "2.5e3") % a).status()) {
-			std::cout << a << std::endl;
+	{  // test 1 整数の正常変換
+		int a;
+		int b = 1234;
+		if((input("%d", "1234") % a).status()) {
+			std::cout << "Test1, int input as '1234' : " << a;
+			if(a == b) {
+				std::cout << "  Pass." << std::endl;
+			} else {
+				std::cout << "  Value NG!" << std::endl;
+				return -1;
+			}
 		} else {
-			std::cout << "Error exp(float)" << std::endl;
+			std::cout << "  State NG!" << std::endl;
+			return -1;
 		}
 	}
 #endif
 
-#if 0
-	{  // test 3
-		int a;
-		auto err = (input("%d") % a).get_error();
-		if(err == input::error::none) {
-			std::cout << "Input: " << a << std::endl;
+#if 1
+	{  // test 2 浮動小数点の正常変換
+		float a;
+		float b = 2.5e3;
+		if((input("%f", "2.5e3") % a).status()) {
+			std::cout << "Test2, float input as '2.5e3' : " << a;
+			if(a == b) {
+				std::cout << "  Pass." << std::endl;
+			} else {
+				std::cout << "  Value NG!" << std::endl;
+				return -1;
+			}
 		} else {
-			std::cout << "Input error: " << static_cast<int>(err) << std::endl;
+			std::cout << "  State NG!" << std::endl;
+			return -1;
 		}
 	}
 #endif
+
+#if 1
+	{  // test 3 整数の正常変換、ステータス確認
+		int a;
+		auto err = (input("%d", "876") % a).get_error();
+		std::cout << "Test3, state ok check: " << static_cast<int>(err) << " (" << a << ")";
+		if(err == input::error::none) {
+			std::cout << "  Pass." << std::endl;
+		} else {
+			std::cout << "  State NG!" << std::endl;
+			return -1;
+		}
+	}
+#endif
+
+#if 1
+	{  // test 4 整数の異常変換、ステータス確認、引数の初期値が変化しない事
+		int a = 999;
+		auto err = (input("%d", "8a6") % a).get_error();
+		std::cout << "Test4, state ng check: " << static_cast<int>(err) << " (" << a << ")";
+		if(err != input::error::none && a == 999) {
+			std::cout << "  Pass." << std::endl;
+		} else {
+			std::cout << "  State NG!" << std::endl;
+			return -1;
+		}
+	}
+#endif
+
+
+
+
+
 
 #if 1
 	{  // test 4
