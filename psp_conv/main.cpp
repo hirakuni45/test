@@ -1,4 +1,5 @@
 #include "utils/format.hpp"
+#include "utils/input.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/file_io.hpp"
 
@@ -11,7 +12,7 @@
 
 namespace {
 
-	static const uint32_t VERSION = 85;
+	static const uint32_t VERSION = 91;
 
 	uint32_t adpcm_total_ = 0;
 
@@ -20,11 +21,15 @@ namespace {
 	void help_(const char* cmd) {
 		auto c = utils::get_file_base(cmd, true);
 		utils::format("PSP Sound data converter (*.PHD, *.PBD to MVG [Multi VAG])\n");
+		utils::format("  (--info) Input WAV (AT3) file loop infomations list\n");
 		utils::format("Version %d.%02d\n") % (VERSION / 100) % (VERSION % 100);
 		utils::format("usage:\n");
 		utils::format("    %s [options] input-file [output-file]\n") % c.c_str();
-		utils::format("    -v verbose\n");
-		utils::format("    -w make WAV file\n");
+		utils::format("    -v                  verbose\n");
+		utils::format("    --info              input file infomations\n");
+		utils::format("    --phd PHD-size      set a PHD size\n");
+		utils::format("    --svl body-offset   set a PBD body offset\n");
+///		utils::format("    -w make WAV file\n");
 		utils::format("\n");
 	}
 
@@ -208,6 +213,37 @@ namespace {
 
 		return true;
 	}
+
+
+	int info_(const char* filename)
+	{
+		utils::file_io fin;
+		if(!fin.open(filename, "rb")) {
+			utils::format("Can't open input file: '%s'\n") % filename;
+			return -1;
+		}
+		al::wav_io wav;
+		auto ret = wav.probe(fin);
+		fin.close();
+
+		if(ret) {
+			const auto& t = wav.get_smpl_loop();
+			if(!t.empty()) {
+				utils::format("  Loop num: %d\n") % t.size();
+				for(uint32_t i = 0; i < t.size(); ++i) {
+					const auto& l = t[i];
+					auto start48 = l.start * 480 / 441;
+					auto end48   = l.end   * 480 / 441;
+					utils::format("  (%u) ID: %08X\n") % i % l.id;
+					utils::format("    Loop start: %9u (%9u)\n") % l.start % start48;
+					utils::format("           end: %9u (%9u)\n") % l.end   % end48;
+					utils::format("         count: %u\n") % l.play_count;
+				}
+			}
+		}
+
+		return ret ? 0 : -1;
+	}
 }
 
 
@@ -218,20 +254,42 @@ int main(int argc, char *argv[])
 
 	bool error = false;
 	bool wav = false;
+	bool phds = false;
+	bool svl = false;
+	bool info = false;
+	uint32_t phd_size = 0;
+	uint32_t svl_offset = 0;
 	bool verbose = false;
 	for(int i = 1; i < argc; ++i) {
 		if(argv[i][0] == '-') {
 			std::string opt = argv[i];
 			if(opt == "-v") verbose = true;
 			else if(opt == "-w") wav = true;
+			else if(opt == "--svl") svl = true;
+			else if(opt == "--phd") phds = true;
+			else if(opt == "--info") info = true;
 			else if(opt == "--verbose") verbose = true;
 			else {
 				utils::format("Illegual options: '%s'\n") % opt.c_str();
 				error = true;
 			}
 		} else {
-			inp_file = out_file;
-			out_file = argv[i];
+			if(phds) {
+				phd_size = 0;
+				if(!(utils::input("%u", argv[i]) % phd_size).status()) {
+					utils::format("Illegual PHD size: '%s'\n") % argv[i];
+				}
+				phds = false;
+			} else if(svl) {
+				svl_offset = 0;
+				if(!(utils::input("%u", argv[i]) % svl_offset).status()) {
+					utils::format("Illegual SVL offset: '%s'\n") % argv[i];
+				}
+				svl = false;
+			} else {
+				inp_file = out_file;
+				out_file = argv[i];
+			}
 		}
 	}
 	if(inp_file == nullptr && out_file != nullptr) {
@@ -247,14 +305,7 @@ int main(int argc, char *argv[])
 	std::string base = inp_file;
 	std::string phd_name = base + ".PHD";
 	std::string pbd_name = base + ".PBD";
-	if(!utils::probe_file(phd_name)) {
-		utils::format("Cant open PHD-file: '%s'\n") % phd_name.c_str();
-		return -1;
-	}
-	if(!utils::probe_file(pbd_name)) {
-		utils::format("Cant open PBD-file: '%s'\n") % pbd_name.c_str();
-		return -1;
-	}
+	std::string svl_name;
 
 	std::string out_name;
 	std::string wav_name;
@@ -268,23 +319,73 @@ int main(int argc, char *argv[])
 	}
 
 	if(verbose) {
-		utils::format("PHD file name: '%s'\n") % phd_name.c_str();
-		utils::format("PBD file name: '%s'\n") % pbd_name.c_str();
-		utils::format("OUT file name: '%s'\n") % out_name.c_str();
-		if(!wav_name.empty()) {
-			utils::format("WAV file name: '%s'\n") % wav_name.c_str();
+		if(info) {
+			utils::format("Infomation mode:\n");
+			utils::format("  Input file name: '%s'\n") % inp_file;
+		} else {
+			if(svl_offset > 0 && phd_size > 0 && phd_size <= svl_offset) {
+				utils::format("SVL file name: '%s', PHD: %d, offset: %d\n")
+					% svl_name.c_str() % phd_size % svl_offset;
+			} else {
+				utils::format("PHD file name: '%s'\n") % phd_name.c_str();
+				utils::format("PBD file name: '%s'\n") % pbd_name.c_str();
+			}
+			utils::format("OUT file name: '%s'\n") % out_name.c_str();
+			if(!wav_name.empty()) {
+				utils::format("WAV file name: '%s'\n") % wav_name.c_str();
+			}
 		}
 	}
 
-	// read PHD
-	utils::file_io fin;
-	if(!fin.open(phd_name, "rb")) {
-		utils::format("Can't open PHD file: '%s'\n") % phd_name.c_str();
-		return -1;
+	if(info) {
+		return info_(inp_file);
 	}
-	auto phd = utils::read_array(fin);
-	fin.close();
 
+	utils::array_uc phd;
+	if(svl_offset > 0) {
+		svl_name = base + ".SVL";
+		if(!utils::probe_file(svl_name)) {
+			utils::format("Cant open SVL-file: '%s'\n") % svl_name.c_str();
+			return -1;
+		}
+	} else {
+		if(!utils::probe_file(phd_name)) {
+			utils::format("Cant open PHD-file: '%s'\n") % phd_name.c_str();
+			return -1;
+		}
+		if(!utils::probe_file(pbd_name)) {
+			utils::format("Cant open PBD-file: '%s'\n") % pbd_name.c_str();
+			return -1;
+		}
+	}
+
+
+	utils::array_uc pbd;
+	if(svl_offset > 0 && phd_size > 0 && phd_size <= svl_offset) {
+		utils::file_io fin;
+		if(!fin.open(svl_name, "rb")) {
+			utils::format("Can't open SVL file: '%s'\n") % svl_name.c_str();
+			return -1;
+		}
+		auto svl = utils::read_array(fin);
+		fin.close();
+
+		phd.resize(phd_size);
+		memcpy(&phd[0],	&svl[0], phd_size);
+
+		auto pbd_size = svl.size() - svl_offset;
+		pbd.resize(pbd_size);
+		memcpy(&pbd[0],	&svl[svl_offset], pbd_size);
+	} else {
+		// read PHD
+		utils::file_io fin;
+		if(!fin.open(phd_name, "rb")) {
+			utils::format("Can't open PHD file: '%s'\n") % phd_name.c_str();
+			return -1;
+		}
+		phd = utils::read_array(fin);
+		fin.close();
+	}
 	phd_org_ = &phd[0];
 
 	// check ID
@@ -318,12 +419,17 @@ int main(int argc, char *argv[])
 	}
 
 	// read PBD
-	if(!fin.open(pbd_name, "rb")) {
-		utils::format("Can't open PBD file: '%s'\n") % pbd_name.c_str();
-		return -1;
+	if(svl_offset > 0 && phd_size > 0 && phd_size <= svl_offset) {
+
+	} else {
+		utils::file_io fin;
+		if(!fin.open(pbd_name, "rb")) {
+			utils::format("Can't open PBD file: '%s'\n") % pbd_name.c_str();
+			return -1;
+		}
+		pbd = utils::read_array(fin);
+		fin.close();
 	}
-	auto pbd = utils::read_array(fin);
-	fin.close();
 
 	if(verbose) {
 		utils::format("PBD file size: %u\n") % pbd.size();
