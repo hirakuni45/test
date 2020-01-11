@@ -1,0 +1,266 @@
+Infomation mode:
+  Input file name: 'AT3/ASERU.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    167389 (    84800)
+           end:   3500986 (    12326)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/BATTLE1.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     48314 (    52586)
+           end:   1420218 (    84942)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/BATTLE2.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    176362 (    94567)
+           end:   1568698 (    51770)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/BATTLE3.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    419258 (    66769)
+           end:   2787258 (    14612)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/BATTLE4.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    254977 (    82742)
+           end:   5055418 (    48569)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/BATTLE5.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:   1601714 (    87705)
+           end:   4891578 (    65022)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/BATTLE82.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/BATTLE83.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/BATTLE89.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/CATCHI.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/ELFER.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    143778 (    59101)
+           end:   3099578 (    62377)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/ENDING.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    313291 (    48822)
+           end:   1947578 (    74590)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/GOBLIN.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    397034 (    42579)
+           end:   3571642 (    89231)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_AMORI.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     13274 (    14447)
+           end:    530362 (    90307)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_DOKUTU.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     50772 (    55262)
+           end:   1052602 (    74382)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_DOWERF.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    107717 (    19851)
+           end:   1377210 (    38130)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_FILE.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     76444 (    83204)
+           end:   1283002 (    32983)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_FMORI.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    112570 (    25133)
+           end:   1800122 (    11485)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_FUNE.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     61370 (    66797)
+           end:   1025978 (    45403)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_FUNE2.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     49082 (    53422)
+           end:   1046458 (    67694)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_HAKABA.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     28455 (    30971)
+           end:    958394 (    69234)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_IWABA.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     12218 (    13298)
+           end:    699322 (    79425)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_KMORI.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:      9338 (    10163)
+           end:    564154 (    29695)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_MAKAI.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    291968 (    25613)
+           end:   1180602 (    18918)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_MIZUUM.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    155578 (    71945)
+           end:    993210 (     9737)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_SOUGEN.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    143290 (    58570)
+           end:   1093562 (    21572)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_TOU.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     65466 (    71255)
+           end:    982970 (    95983)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/K_UMI.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     48985 (    53317)
+           end:   1032122 (    52091)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/KURUTON.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    172218 (    90056)
+           end:   2785210 (    12383)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/MACHI.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:     51002 (    55512)
+           end:   1353658 (    12496)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/MAHOU.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:      1847 (     2010)
+           end:   3529658 (    43534)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/OPENING2.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER58.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER64.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER66.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER71.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER72.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER73.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER74.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER75.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER78.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER82.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER83.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/PLAYER84.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/SND0.AT3'
+Infomation mode:
+  Input file name: 'AT3/STAFFROLL.AT3'
+  Loop num: 0, SampleRate: 44100Hz (48000Hz), Chanel: 2
+Infomation mode:
+  Input file name: 'AT3/THEME.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:   1258263 (     6056)
+           end:   4416442 (    34825)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/YADOYA.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    114436 (    27164)
+           end:   1698746 (    95927)
+         count: 0
+Infomation mode:
+  Input file name: 'AT3/ZAKKAYA.AT3'
+  Loop num: 1, SampleRate: 44100Hz (48000Hz), Chanel: 2
+  (0) ID: 00000000
+    Loop start:    197130 (    19780)
+           end:   1639354 (    31283)
+         count: 0
