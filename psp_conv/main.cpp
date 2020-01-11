@@ -223,22 +223,22 @@ namespace {
 			return -1;
 		}
 		al::wav_io wav;
-		auto ret = wav.probe(fin);
+		al::audio_info info;
+		auto ret = wav.info(fin, info);
 		fin.close();
 
 		if(ret) {
 			const auto& t = wav.get_smpl_loop();
-			if(!t.empty()) {
-				utils::format("  Loop num: %d\n") % t.size();
-				for(uint32_t i = 0; i < t.size(); ++i) {
-					const auto& l = t[i];
-					auto start48 = l.start * 480 / 441;
-					auto end48   = l.end   * 480 / 441;
-					utils::format("  (%u) ID: %08X\n") % i % l.id;
-					utils::format("    Loop start: %9u (%9u)\n") % l.start % start48;
-					utils::format("           end: %9u (%9u)\n") % l.end   % end48;
-					utils::format("         count: %u\n") % l.play_count;
-				}
+			utils::format("  Loop num: %d, SampleRate: %uHz (48000Hz), Chanel: %d\n")
+				% t.size() % info.frequency % info.chanels;
+			for(uint32_t i = 0; i < t.size(); ++i) {
+				const auto& l = t[i];
+				auto start48 = l.start * 48000 / info.frequency;
+				auto end48   = l.end   * 48000 / info.frequency;
+				utils::format("  (%u) ID: %08X\n") % i % l.id;
+				utils::format("    Loop start: %9u (%9u)\n") % l.start % start48;
+				utils::format("           end: %9u (%9u)\n") % l.end   % end48;
+				utils::format("         count: %u\n") % l.play_count;
 			}
 		}
 

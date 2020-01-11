@@ -105,6 +105,7 @@ namespace al {
 					memcpy(&ext_.size, &ext, sizeof(WAVEEXT));
 				} else if(static_cast<WAVE_FORMAT>(t.format_tag) == WAVE_FORMAT::AT3) {
 					type_ = wavefile_type::AT3;
+					memcpy(&ext_.format, &t, sizeof(fmt_t));
 				}
 			} else if(strncmp(rc.szChunkName, "data", 4) == 0) {
 				data_size_ = rc.ulChunkSize;
@@ -198,8 +199,6 @@ std::cout << std::endl;
 					}
 					smpl_loops_.push_back(t);
 				}
-			} else {  // 不明なチャンク
-
 			}
 			riff_num_++;
 			ofs += rc.ulChunkSize;
