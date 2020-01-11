@@ -2,7 +2,7 @@
 /*!	@file
 	@brief	WAV 音声ファイルを扱うクラス
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2019 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/glfw_app/blob/master/LICENSE
 */
@@ -35,6 +35,7 @@ namespace al {
 
 		PCM = 0x0001,
 		EXTENSIBLE = 0xFFFE,
+		AT3 = 624,
 	};
 
 	struct WAVEFILEHEADER {
@@ -48,19 +49,12 @@ namespace al {
 		uint32_t	ulChunkSize;
 	};
 
-	struct WAVEFMT {
-		uint16_t	usFormatTag;
-		uint16_t	usChannels;
-		uint32_t	ulSamplesPerSec;
-		uint32_t	ulAvgBytesPerSec;
-		uint16_t	usBlockAlign;
-		uint16_t	usBitsPerSample;
-		uint16_t	usSize;
-		uint16_t	usReserved;
-		uint32_t	ulChannelMask;
-		uint32_t	guidSubFormat;
+	struct WAVEEXT {
+		uint16_t	size;
+		uint16_t	reserved;
+		uint32_t	channel_mask;
+		uint32_t	guid_sub_format;
 	};
-
 
 	//-----------------------------------------------------------------//
 	/*!
@@ -73,7 +67,7 @@ namespace al {
 		tag_.clear();
 		tag_.title_ = utils::get_file_base(fin.get_path());
 
-		type_ = wf_null;
+		type_ = wavefile_type::null;
 		memset(&ext_, 0, sizeof(wave_format_extensible));
 		data_size_ = 0;
 		data_offset_ = 0;
@@ -94,19 +88,23 @@ namespace al {
 		while(fin.read(&rc, 1, sizeof(rc)) == sizeof(rc)) {
 			ofs += sizeof(rc);
 			if(strncmp(rc.szChunkName, "fmt ", 4) == 0) {
-				if(rc.ulChunkSize <= sizeof(WAVEFMT)) {
-					WAVEFMT wf;
-					if(fin.read(&wf, 1, rc.ulChunkSize) != rc.ulChunkSize) {
+				fmt_t t;
+				if(fin.read(&t, 1, sizeof(fmt_t)) != sizeof(fmt_t)) {
+					return false;
+				}
+				// Determine if this is a WAVEFORMATEX or WAVEFORMATEXTENSIBLE wave file
+				if(static_cast<WAVE_FORMAT>(t.format_tag) == WAVE_FORMAT::PCM) {
+					type_ = wavefile_type::ex;
+					memcpy(&ext_.format, &t, sizeof(fmt_t));
+				} else if(static_cast<WAVE_FORMAT>(t.format_tag) == WAVE_FORMAT::EXTENSIBLE) {
+					type_ = wavefile_type::ext;
+					WAVEEXT ext;
+					if(fin.read(&ext, 1, sizeof(WAVEEXT)) != sizeof(WAVEEXT)) {
 						return false;
 					}
-					// Determine if this is a WAVEFORMATEX or WAVEFORMATEXTENSIBLE wave file
-					if(static_cast<WAVE_FORMAT>(wf.usFormatTag) == WAVE_FORMAT::PCM) {
-						type_ = wf_ex;
-						memcpy(&ext_.format, &wf, sizeof(wave_format_ex));
-					} else if(static_cast<WAVE_FORMAT>(wf.usFormatTag) == WAVE_FORMAT::EXTENSIBLE) {
-						type_ = wf_ext;
-						memcpy(&ext_, &wf, sizeof(wave_format_extensible));
-					}
+					memcpy(&ext_.size, &ext, sizeof(WAVEEXT));
+				} else if(static_cast<WAVE_FORMAT>(t.format_tag) == WAVE_FORMAT::AT3) {
+					type_ = wavefile_type::AT3;
 				}
 			} else if(strncmp(rc.szChunkName, "data", 4) == 0) {
 				data_size_ = rc.ulChunkSize;
@@ -186,13 +184,29 @@ std::cout << std::endl;
 						sz -= n;
 					}
 				}
+			} else if(strncmp(rc.szChunkName, "smpl", 4) == 0) {
+				smpl_.size = rc.ulChunkSize;
+				auto rsz = sizeof(smpl_t) - 8;
+				if(fin.read(&smpl_.manufacturer, 1, rsz) != rsz) {
+					return false;
+				}
+				smpl_loops_.clear();
+				for(uint32_t i = 0; i < smpl_.sample_loops; ++i) {
+					smpl_loop_t t;
+					if(fin.read(&t, 1, sizeof(smpl_loop_t)) != sizeof(smpl_loop_t)) {
+						return false;
+					}
+					smpl_loops_.push_back(t);
+				}
+			} else {  // 不明なチャンク
+
 			}
 			riff_num_++;
 			ofs += rc.ulChunkSize;
 			fin.seek(ofs, file_io::seek::set);
 		}
 
-		if(data_size_ > 0 && data_offset_ != 0 && ((type_ == wf_ex) || (type_ == wf_ext))) {
+		if(data_size_ > 0 && data_offset_ != 0 && type_ != wavefile_type::null) {
 			return true;
 		} else {
 			return false;
@@ -225,7 +239,7 @@ std::cout << std::endl;
 		wh.szRIFF[1] = 'I';
 		wh.szRIFF[2] = 'F';
 		wh.szRIFF[3] = 'F';
-		wh.ulRIFFSize = sizeof(RIFFCHUNK) * 2 + sizeof(wave_format_ex) + align * src->get_samples();
+		wh.ulRIFFSize = sizeof(RIFFCHUNK) * 2 + sizeof(fmt_t) + align * src->get_samples();
 		wh.szWAVE[0] = 'W';
 		wh.szWAVE[1] = 'A';
 		wh.szWAVE[2] = 'V';
@@ -239,19 +253,19 @@ std::cout << std::endl;
 		rc.szChunkName[1] = 'm';
 		rc.szChunkName[2] = 't';
 		rc.szChunkName[3] = ' ';
-		rc.ulChunkSize = sizeof(wave_format_ex);
+		rc.ulChunkSize = sizeof(fmt_t);
 		if(fout.write(&rc, 1, sizeof(RIFFCHUNK)) != sizeof(RIFFCHUNK)) {
 			return false;
 		}
 
-		wave_format_ex ex;
+		fmt_t ex;
 		ex.format_tag        = static_cast<uint16_t>(WAVE_FORMAT::PCM);
 		ex.channels          = src->get_chanel();
 		ex.samples_per_sec   = rate;
 		ex.avg_bytes_per_sec = rate * align;
 		ex.block_align       = align;
 		ex.bits_per_sample   = bits;
-		if(fout.write(&ex, 1, sizeof(wave_format_ex)) != sizeof(wave_format_ex)) {
+		if(fout.write(&ex, 1, sizeof(fmt_t)) != sizeof(fmt_t)) {
 			return false;
 		}
 
@@ -345,7 +359,7 @@ std::cout << std::endl;
 #endif
 		} else {
 #ifdef LOAD_INFO_
-			if(type_ == wf_ex) {
+			if(type_ == wavefile_type::ex) {
 				std::cout << "Form: ex" << std::endl;
 			} else {
 				std::cout << "Form: ext" << std::endl;

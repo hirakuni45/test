@@ -9,6 +9,7 @@
 */
 //=====================================================================//
 #include <string>
+#include <vector>
 #include "i_snd_io.hpp"
 
 namespace al {
@@ -19,36 +20,86 @@ namespace al {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class wav_io : public i_snd_io {
+	public:
 
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief	smpl チャンク構造体
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		struct smpl_t {
+			char		id[4];					///< 'smpl'
+			uint32_t	size;					///< チャンクサイズ（id、size を除く）
+			uint32_t	manufacturer;			///< 製造者コード（WAVEは０）
+			uint32_t	product;				///< プロダクトコード（WAVEは０）
+			uint32_t	sample_period;			///< １サンプルの時間（ナノ秒）
+			uint32_t	MIDI_unity_note;		///< MIDI 時のノート
+			uint32_t	MIDI_pitch_fraction;	///< MIDI 時のピッチチューニング（セント？）
+			uint32_t	SMPTE_format;			///< SMPTE フォーマット設定
+			uint32_t	SMPTE_offset;			///< SMPTE オフセット
+			uint32_t	sample_loops;			///< サンプルループ構造体の数
+			uint32_t	sampler_data;			///< 追加情報サイズ（通常０）
+
+			smpl_t() : id{ 's', 'm', 'p', 'l' },
+				size(0),
+				manufacturer(0), product(0),
+				sample_period(0),
+				MIDI_unity_note(0), MIDI_pitch_fraction(0),
+				SMPTE_format(0), SMPTE_offset(0),
+				sample_loops(0),
+				sampler_data(0)
+			{ }
+		};
+
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief	smpl チャンク、ループ情報構造体
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		struct smpl_loop_t {
+			uint32_t	id;			///< 固有 ID
+			uint32_t	type;		///< ループタイプ（通常０）
+			uint32_t	start;		///< ループ開始位置（単位：サンプル）
+			uint32_t	end;		///< ループ終了位置（単位：サンプル）
+			uint32_t	fraction;	///< ループ・チューニング変数
+			uint32_t	play_count;	///< ループ回数（０の場合、無限ループ）
+			smpl_loop_t() : id(0), type(0),
+				start(0), end(0), fraction(0), play_count(0)
+			{ }
+		};
+
+	private:
 		typedef int16_t	   	WORD;	///< 2 bytes
 		typedef int32_t	   	DWORD;	///< 4 bytes
 		typedef uint32_t	GUID;	///< 4 bytes
 
-		enum wavefile_type {
-			wf_null = 0,
-			wf_ex  = 1,
-			wf_ext = 2
+		enum class wavefile_type {
+			null = 0,
+			ex  = 1,
+			ext = 2,
+			AT3 = 624,
 		};
 
-		struct wave_format_ex {
-			WORD	format_tag;
-			WORD	channels;
-			DWORD	samples_per_sec;
-			DWORD	avg_bytes_per_sec;
-			WORD	block_align;
-			WORD	bits_per_sample;
+		struct fmt_t {
+			uint16_t	format_tag;
+			uint16_t	channels;
+			uint32_t	samples_per_sec;
+			uint32_t	avg_bytes_per_sec;
+			uint16_t	block_align;
+			uint16_t	bits_per_sample;
 		};
 
 		struct wave_format_extensible {
-			wave_format_ex	format;
-			WORD			size;
+			fmt_t		format;
+			WORD		size;
 			union {
 				WORD	valid_bits_per_sample;       /* bits of precision  */
 				WORD	samples_per_block;          /* valid if wBitsPerSample==0 */
 				WORD	reserved;                 /* If neither applies, set to zero. */
 			};
-			DWORD			channel_mask;      /* which channels are */
-			GUID			sub_format;
+			DWORD		channel_mask;      /* which channels are */
+			GUID		sub_format;
 		};
 
 		wavefile_type			type_;
@@ -66,6 +117,10 @@ namespace al {
 
 		tag				tag_;
 
+		smpl_t			smpl_;
+		typedef std::vector<smpl_loop_t> SMPL_LOOPS;
+		SMPL_LOOPS		smpl_loops_;
+
 		bool parse_header_(utils::file_io& fin);
 		bool create_wav_(utils::file_io& fout, const audio src);
 
@@ -75,7 +130,10 @@ namespace al {
 			@brief	コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		wav_io() : stream_blocks_(0) { }
+		wav_io() : stream_blocks_(0),
+			tag_(),
+			smpl_(), smpl_loops_()
+		{ }
 
 
 		//-----------------------------------------------------------------//
@@ -229,6 +287,23 @@ namespace al {
 		//-----------------------------------------------------------------//
 		void destroy() override;
 
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	smpl 情報の取得
+			@return smpl 情報
+		*/
+		//-----------------------------------------------------------------//
+		auto get_smpl() const { return smpl_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	smpl ループ情報の取得
+			@return smpl ループ情報
+		*/
+		//-----------------------------------------------------------------//
+		auto get_smpl_loop() const { return smpl_loops_; }
 	};
 
 }
