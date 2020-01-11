@@ -1,3 +1,4 @@
+#include <regex>
 #include "utils/format.hpp"
 #include "utils/input.hpp"
 #include "utils/string_utils.hpp"
@@ -12,7 +13,7 @@
 
 namespace {
 
-	static const uint32_t VERSION = 91;
+	static const uint32_t VERSION = 95;
 
 	uint32_t adpcm_total_ = 0;
 
@@ -215,7 +216,7 @@ namespace {
 	}
 
 
-	int info_(const char* filename)
+	int info_(const char* filename, bool verbose)
 	{
 		utils::file_io fin;
 		if(!fin.open(filename, "rb")) {
@@ -229,17 +230,32 @@ namespace {
 
 		if(ret) {
 			const auto& t = wav.get_smpl_loop();
-			utils::format("  Loop num: %d, SampleRate: %uHz (48000Hz), Chanel: %d\n")
-				% t.size() % info.frequency % info.chanels;
+			if(verbose) {
+				utils::format("  Loop num: %d, Samples: %u, SampleRate: %uHz (48000Hz), Chanel: %d\n")
+					% t.size() % info.samples % info.frequency % info.chanels;
+			}
+			std::string in_f  = std::regex_replace(filename, std::regex("AT3"), "WAV");
+			std::string out_f = std::regex_replace(filename, std::regex("AT3"), "AT9");
+			std::string para = " ";
+			uint32_t limit = static_cast<uint64_t>(info.samples * 1024) * 48000 / info.frequency;
 			for(uint32_t i = 0; i < t.size(); ++i) {
 				const auto& l = t[i];
-				auto start48 = l.start * 48000 / info.frequency;
-				auto end48   = l.end   * 48000 / info.frequency;
-				utils::format("  (%u) ID: %08X\n") % i % l.id;
-				utils::format("    Loop start: %9u (%9u)\n") % l.start % start48;
-				utils::format("           end: %9u (%9u)\n") % l.end   % end48;
-				utils::format("         count: %u\n") % l.play_count;
+				uint32_t start48 = static_cast<uint64_t>(l.start) * 48000 / info.frequency;
+				uint32_t end48   = static_cast<uint64_t>(l.end)   * 48000 / info.frequency;
+				if(end48 >= limit) {
+					end48 = limit - 1;
+				}
+				if(verbose) {
+					utils::format("  (%u) ID: %08X\n") % i % l.id;
+					utils::format("    Loop start: %9u (%9u)\n") % l.start % start48;
+					utils::format("           end: %9u (%9u)\n") % l.end   % end48;
+					utils::format("         count: %u\n") % l.play_count;
+				}
+				char tmp[256];
+				utils::sformat("-loop %u %u ", tmp, sizeof(tmp)) % start48 % end48;
+				para += tmp;
 			}
+			utils::format("./at9tool%s-e %s %s\n") % para.c_str() % in_f.c_str() % out_f.c_str();
 		}
 
 		return ret ? 0 : -1;
@@ -338,7 +354,7 @@ int main(int argc, char *argv[])
 	}
 
 	if(info) {
-		return info_(inp_file);
+		return info_(inp_file, verbose);
 	}
 
 	utils::array_uc phd;
