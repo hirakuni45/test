@@ -13,7 +13,7 @@
 
 namespace {
 
-	static const uint32_t VERSION = 95;
+	static const uint32_t VERSION = 96;
 
 	uint32_t adpcm_total_ = 0;
 
@@ -28,8 +28,9 @@ namespace {
 		utils::format("    %s [options] input-file [output-file]\n") % c.c_str();
 		utils::format("    -v                  verbose\n");
 		utils::format("    --info              input file infomations\n");
-		utils::format("    --phd PHD-size      set a PHD size\n");
-		utils::format("    --svl body-offset   set a PBD body offset\n");
+		utils::format("    --phd PHD-size      set a PHD size for SVL\n");
+		utils::format("    --svl body-offset   set a PBD body offset for SVL\n");
+		utils::format("    --cmp               PHD/PBD vs SVL compare\n");
 ///		utils::format("    -w make WAV file\n");
 		utils::format("\n");
 	}
@@ -263,6 +264,75 @@ namespace {
 }
 
 
+int cmp_(const std::string& phd_name, const std::string& pbd_name, const std::string& svl_name, bool verbose)
+{
+	utils::file_io phd;
+	if(!phd.open(phd_name, "rb")) {
+		utils::format("Can't open PHD file: '%s'\n") % phd_name.c_str();
+		return -1;
+	}
+	utils::file_io pbd;
+	if(!pbd.open(pbd_name, "rb")) {
+		utils::format("Can't open PBD file: '%s'\n") % pbd_name.c_str();
+		return -1;
+	}
+	utils::file_io svl;
+	if(!svl.open(svl_name, "rb")) {
+		utils::format("Can't open SVL file: '%s'\n") % svl_name.c_str();
+		return -1;
+	}
+
+	auto svl_a = utils::read_array(svl);
+	auto phd_a = utils::read_array(phd);
+	auto pbd_a = utils::read_array(pbd);
+	svl.close();
+	pbd.close();
+	phd.close();
+
+	uint32_t err = 0;
+	uint32_t adr = 0;
+	for(uint32_t i = 0; i < phd_a.size(); ++i) {
+		if(phd_a[i] != svl_a[i]) {
+			utils::format("%06X: %02X (PHD) -> %02X (SVL)\n")
+				% adr % static_cast<uint32_t>(phd_a[i]) % static_cast<uint32_t>(svl_a[i]);
+			++err;
+		}
+		++adr;
+	}
+	if(verbose) {
+		if(err == 0) {
+			utils::format("Match all PHD: %u bytes\n") % phd_a.size();
+		}
+	}
+
+	adr += 31;
+	adr &= ~31;
+	if((adr + pbd_a.size() + 1) != svl_a.size()) {
+		utils::format("Total size not match: %u (PHD+PBD) -> %u (SVL)\n")
+			% (adr + pbd_a.size() + 1) % svl_a.size();
+		return 0;
+	}
+
+	for(uint32_t i = 0; i < pbd_a.size(); ++i) {
+		if(pbd_a[i] != svl_a[adr]) {
+			utils::format("%06X: %02X (PBD) -> %02X (SVL)\n")
+				% adr % static_cast<uint32_t>(pbd_a[i]) % static_cast<uint32_t>(svl_a[adr]);
+			++err;
+		}
+		++adr;
+	}
+	if(verbose) {
+		if(err == 0) {
+			utils::format("Match all PBD: %u bytes\n") % pbd_a.size();
+		}
+	}
+
+	utils::format("Total compare error counts: %u\n\n") % err;
+
+	return 0;
+}
+
+
 int main(int argc, char *argv[])
 {
 	const char* inp_file = nullptr;
@@ -273,6 +343,7 @@ int main(int argc, char *argv[])
 	bool phds = false;
 	bool svl = false;
 	bool info = false;
+	bool cmp = false;
 	uint32_t phd_size = 0;
 	uint32_t svl_offset = 0;
 	bool verbose = false;
@@ -283,6 +354,7 @@ int main(int argc, char *argv[])
 			else if(opt == "-w") wav = true;
 			else if(opt == "--svl") svl = true;
 			else if(opt == "--phd") phds = true;
+			else if(opt == "--cmp") cmp = true;
 			else if(opt == "--info") info = true;
 			else if(opt == "--verbose") verbose = true;
 			else {
@@ -321,7 +393,7 @@ int main(int argc, char *argv[])
 	std::string base = inp_file;
 	std::string phd_name = base + ".PHD";
 	std::string pbd_name = base + ".PBD";
-	std::string svl_name;
+	std::string svl_name = base + ".SVL";
 
 	std::string out_name;
 	std::string wav_name;
@@ -335,7 +407,12 @@ int main(int argc, char *argv[])
 	}
 
 	if(verbose) {
-		if(info) {
+		if(cmp) {
+			utils::format("Compare mode:\n");
+			utils::format("  PHD file name: '%s'\n") % phd_name.c_str();
+			utils::format("  PBD file name: '%s'\n") % pbd_name.c_str();
+			utils::format("  SVL file name: '%s'\n") % svl_name.c_str();
+		} else if(info) {
 			utils::format("Infomation mode:\n");
 			utils::format("  Input file name: '%s'\n") % inp_file;
 		} else {
@@ -353,13 +430,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if(info) {
+	if(cmp) {
+		return cmp_(phd_name, pbd_name, svl_name, verbose);
+	} else if(info) {
 		return info_(inp_file, verbose);
 	}
 
 	utils::array_uc phd;
 	if(svl_offset > 0) {
-		svl_name = base + ".SVL";
 		if(!utils::probe_file(svl_name)) {
 			utils::format("Cant open SVL-file: '%s'\n") % svl_name.c_str();
 			return -1;

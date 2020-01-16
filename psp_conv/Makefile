@@ -185,7 +185,8 @@ run:
 #	./$(TARGET) -v CARD_DEM
 #	./$(TARGET) -v tmp/MAINMAP
 #	cp tmp/MAINMAP.MVG /d/Git/PrincessCrown/CUSA18554/PrincessCrownPS4/PS4Project/MVG/.
-	./$(TARGET) -v --info AT3/K_FILE.AT3
+#	./$(TARGET) -v --info AT3/K_FILE.AT3
+	sh check.sh
 
 clean:
 	rm -rf $(BUILD) $(TARGET)$(FEXT)
