@@ -6,6 +6,7 @@
 			%b ---> ２進の数値 @n
 			%o ---> ８進の数値 @n
 			%d ---> １０進の数値 @n
+			%u ---> 符号無し１０進 @n
 			%x ---> １６進の数値 @n
 			%f ---> 浮動小数点数（float、double） @n
 			%c ---> １文字のキャラクター @n
@@ -21,7 +22,11 @@
 				} @n
 			+ 2019/12/26 15:30- 数値のオート入力機能追加 @n
 			! 2020/01/05 02:52- 変換が失敗した場合に、引数の値を変保持する @n
-			! 2020/01/05 03:22- %c の変換で、変換数カウントが変化しない不具合修正
+			! 2020/01/05 03:22- %c の変換で、変換数カウントが変化しない不具合修正 @n
+			! 2020/01/05 06:16- %u 符号無し整数機能を追加 @n
+			+ 2020/01/15 10:03- std::string 型を定義 @n
+			+ 2020/01/24 15:15- 浮動小数点オーバーフローした場合のリミッター追加 @n
+			+ 2020/01/24 15:50- 整数変換でオーバーフローが発生したらエラーとする
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017, 2020 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -31,6 +36,7 @@
 #include <type_traits>
 #include <unistd.h>
 #include <cmath>
+/// #include <string_view>
 
 namespace utils {
 
@@ -111,9 +117,12 @@ namespace utils {
 			cha_sets,		///< 文字セットの不一致
 			partition,		///< 仕切りキャラクターの不一致
 			input_type,		///< 無効な入力タイプ
-			not_integer,	///< 整数の不一致
-			not_float,		///< 浮動小数点の不一致
+			not_integer,	///< 整数型の不一致
+			different_sign,	///< 符号の不一致
+			sign_type,		///< 符号無し整数にマイナス符号
+			not_float,		///< 浮動小数点型の不一致
 			terminate,		///< 終端文字の不一致
+			overflow,		///< オーバーフロー
 		};
 
 	private:
@@ -126,6 +135,7 @@ namespace utils {
 			BIN,
 			OCT,
 			DEC,
+			UDEC,
 			HEX,
 			REAL,
 			CHA,
@@ -133,16 +143,22 @@ namespace utils {
 		};
 		mode	mode_;
 		error	error_;
-		int		num_;
 		uint8_t	nbc_;
+		bool	ovf_;
+		int		num_;
+
 
 		uint32_t bin_() {
 			uint32_t a = 0;
 			char ch;
 			while((ch = inp_()) != 0) {
 				if(ch >= '0' && ch <= '1') {
-					a <<= 1;
-					a += ch - '0';
+					if(a & 0x80000000) {
+						ovf_ = true;
+					} else {
+						a <<= 1;
+						a += ch - '0';
+					}
 				} else if(nbc_ != 0 && ch == ' ') {
 					// 文字数指定がある場合「スペース」は '0' と同等に扱う
 				} else {
@@ -155,14 +171,19 @@ namespace utils {
 			}
 			return a;
 		}
+
 
 		uint32_t oct_() {
 			uint32_t a = 0;
 			char ch;
 			while((ch = inp_()) != 0) {
 				if(ch >= '0' && ch <= '7') {
-					a <<= 3;
-					a += ch - '0';
+					if(a & 0xe0000000) {
+						ovf_ = true;
+					} else {
+						a <<= 3;
+						a += ch - '0';
+					}
 				} else if(nbc_ != 0 && ch == ' ') {
 					// 文字数指定がある場合「スペース」は '0' と同等に扱う
 				} else {
@@ -175,14 +196,19 @@ namespace utils {
 			}
 			return a;
 		}
+
 
 		uint32_t dec_() {
 			uint32_t a = 0;
 			char ch;
 			while((ch = inp_()) != 0) {
 				if(ch >= '0' && ch <= '9') {
-					a *= 10;
-					a += ch - '0';
+					if(a >= (0xffffffff / 10)) {
+						ovf_ = true;
+					} else {
+						a *= 10;
+						a += ch - '0';
+					}
 				} else if(nbc_ != 0 && ch == ' ') {
 					// 文字数指定がある場合「スペース」は '0' と同等に扱う
 				} else {
@@ -196,19 +222,29 @@ namespace utils {
 			return a;
 		}
 
+
 		uint32_t hex_() {
 			uint32_t a = 0;
 			char ch;
 			while((ch = inp_()) != 0) {
+				if(a & 0xf0000000) {
+					ovf_ = true;
+				}
 				if(ch >= '0' && ch <= '9') {
-					a <<= 4;
-					a += ch - '0';
+					if(!ovf_) {
+						a <<= 4;
+						a += ch - '0';
+					}
 				} else if(ch >= 'A' && ch <= 'F') {
-					a <<= 4;
-					a += ch - 'A' + 10;
+					if(!ovf_) {
+						a <<= 4;
+						a += ch - 'A' + 10;
+					}
 				} else if(ch >= 'a' && ch <= 'f') {
-					a <<= 4;
-					a += ch - 'a' + 10;
+					if(!ovf_) {
+						a <<= 4;
+						a += ch - 'a' + 10;
+					}
 				} else if(nbc_ != 0 && ch == ' ') {
 					// 文字数指定がある場合「スペース」は '0' と同等に扱う
 				} else {
@@ -275,10 +311,14 @@ namespace utils {
 				uint32_t	b;
 				uint32_t	c;
 				bool		p;
+				bool		ovf;
 
-				real_t() : a(0), b(0), c(1), p(false) { }
+				real_t() : a(0), b(0), c(1), p(false), ovf(false) { }
 
 				void add(uint32_t v) {
+					if(c >= (0xffffffff / 10)) {
+						return;
+					}
 					a *= 10;
 					a += v;
 					c *= 10;
@@ -289,6 +329,7 @@ namespace utils {
 					a = 0;
 					c = 1;
 					p = true;
+					ovf = false;
 				}
 
 				T get() const {
@@ -315,9 +356,11 @@ namespace utils {
 					if(expf) {
 						if(exp.p) break;
 						exp.point();
+						if(exp.ovf) ovf_ = true;
 					} else {
 						if(base.p) break;
 						base.point();
+						if(base.ovf) ovf_ = true;
 					}
 				} else if(ch == 'e' || ch == 'E') {
 					if(expf) break;
@@ -326,7 +369,7 @@ namespace utils {
 					break;
 				}
 			}
-			
+
 			if(expf) {
 				return base.get() * pow(static_cast<T>(10), exp.get());
 			} else {
@@ -382,6 +425,9 @@ namespace utils {
 					} else if(ch == 'D') {
 						mode_ = mode::DEC;
 						return;
+					} else if(ch == 'U') {
+						mode_ = mode::UDEC;
+						return;
 					} else if(ch == 'X') {
 						mode_ = mode::HEX;
 						return;
@@ -400,8 +446,9 @@ namespace utils {
 					}
 				}
 			}
-			if(ch == 0 && inp_() == 0) ;
-			else {
+			if(ch == 0 && inp_() == 0) {
+
+			} else {
 				error_ = error::terminate;
 			}
 		}
@@ -423,7 +470,7 @@ namespace utils {
 		}
 
 
-		int32_t nb_int_(bool sign = true)
+		int32_t nb_int_(bool sign)
 		{
 			auto nbc = nbc_;
 			auto neg = neg_();
@@ -440,7 +487,21 @@ namespace utils {
 			case mode::OCT:
 				v = oct_();
 				break;
+			case mode::UDEC:
+				if(sign) {   // 符号無しで符号付きの場合
+					error_ = error::different_sign;
+					return 0;
+				} else if(neg) {
+					error_ = error::sign_type;
+					return 0;
+				}
+				v = dec_();
+				break;
 			case mode::DEC:
+				if(!sign) {  // 符号付きで符号無しの場合
+					error_ = error::different_sign;
+					return 0;
+				}
 				v = dec_();
 				break;
 			case mode::HEX:
@@ -459,8 +520,11 @@ namespace utils {
 				}
 				next_();
 			}
-			if(sign && neg) return -static_cast<int32_t>(v);
-			else return static_cast<int32_t>(v);
+			if(neg) {
+				return -static_cast<int32_t>(v);
+			} else {
+				return static_cast<int32_t>(v);
+			}
 		}
 
 
@@ -494,11 +558,23 @@ namespace utils {
 			@param[in]	inp		変換文字列（nullptrの場合、sci_getch で取得）
 		*/
 		//-----------------------------------------------------------------//
-		basic_input(const char* form, const char* inp = nullptr) noexcept : form_(form), inp_(inp),
-			mode_(mode::NONE), error_(error::none), num_(0), nbc_(0)
+		basic_input(const char* form, const char* inp = nullptr) noexcept :
+			form_(form), inp_(inp),
+			mode_(mode::NONE), error_(error::none), nbc_(0), ovf_(false), num_(0)
 		{
 			next_();
 		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  コンストラクター std::string
+			@param[in]	form	フォーマット式
+			@param[in]	inp		変換文字列（nullptrの場合、sci_getch で取得）
+		*/
+		//-----------------------------------------------------------------//
+		basic_input(const std::string& form, const::std::string& inp) noexcept :
+			basic_input(form.c_str(), (inp.empty() ? nullptr : inp.c_str())) { }
 
 
 		//-----------------------------------------------------------------//
@@ -516,7 +592,9 @@ namespace utils {
 			@return 変換が全て正常なら「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool status() const noexcept { return error_ == error::none; }
+		bool status() const noexcept {
+			return error_ == error::none;
+		}
 
 
 		//-----------------------------------------------------------------//
@@ -559,6 +637,10 @@ namespace utils {
 					if(error_ == error::none) {
 						++num_;
 						val = tmp;
+						if(ovf_) {
+							error_ = error::overflow;
+							ovf_ = false;
+						}
 					}
 				}
 			}
