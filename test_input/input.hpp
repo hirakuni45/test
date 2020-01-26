@@ -10,7 +10,6 @@
 			%x ---> １６進の数値 @n
 			%f ---> 浮動小数点数（float、double） @n
 			%c ---> １文字のキャラクター @n
-			%% ---> '%' のキャラクター @n
 			%a ---> 自動、２進(bnnn)、８進(onnn)、１０進、１６進(xnnn)、を判別 @n
 			Exsample: @n
 				int v; @n
@@ -26,7 +25,8 @@
 			! 2020/01/05 06:16- %u 符号無し整数機能を追加 @n
 			+ 2020/01/15 10:03- std::string 型を定義 @n
 			+ 2020/01/24 15:15- 浮動小数点オーバーフローした場合のリミッター追加 @n
-			+ 2020/01/24 15:50- 整数変換でオーバーフローが発生したらエラーとする
+			+ 2020/01/24 15:50- 整数変換でオーバーフローが発生したらエラーとする @n
+			+ 2020/01/25 17:33- 特殊制御文字を除外する「\」（バックスラッシュ）機能
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017, 2020 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -36,7 +36,10 @@
 #include <type_traits>
 #include <unistd.h>
 #include <cmath>
-/// #include <string_view>
+#include <string>
+#if (__cplusplus >= 201703L)
+#include <string_view>
+#endif
 
 namespace utils {
 
@@ -310,18 +313,25 @@ namespace utils {
 				uint32_t	a;
 				uint32_t	b;
 				uint32_t	c;
+				bool		sign;
 				bool		p;
 				bool		ovf;
 
-				real_t() : a(0), b(0), c(1), p(false), ovf(false) { }
+				real_t() : a(0), b(0), c(1), sign(false), p(false), ovf(false) { }
 
-				void add(uint32_t v) {
+				void set_sign(bool sig = true) {
+					sign = sig;
+				}
+
+				void add(char ch)
+				{
 					if(c >= (0xffffffff / 10)) {
-						return;
+						if(!p) ovf = true;
+					} else {
+						a *= 10;
+						a += static_cast<uint32_t>(ch - '0');
+						c *= 10;
 					}
-					a *= 10;
-					a += v;
-					c *= 10;
 				}
 
 				void point() {
@@ -329,38 +339,55 @@ namespace utils {
 					a = 0;
 					c = 1;
 					p = true;
-					ovf = false;
 				}
 
 				T get() const {
 					if(p) {
-						return static_cast<T>(b) + static_cast<T>(a) / static_cast<T>(c);
+						T tmp = static_cast<T>(b) + static_cast<T>(a) / static_cast<T>(c);
+						if(sign) return -tmp;
+						return tmp;
 					} else {
-						return static_cast<T>(a); 
+						T tmp = static_cast<T>(a);
+						if(sign) return -tmp;
+						else return tmp;
 					}				
 				}
 			};
 
 			real_t	base;
 			real_t	exp;
-			char ch;
 			bool expf = false;
+			char ch;
 			while((ch = inp_()) != 0) {
-				if(ch >= '0' && ch <= '9') {
+				if(ch == '+') {
 					if(expf) {
-						exp.add(ch - '0');
+						if(exp.a != 0) break; 
+						exp.set_sign(false);
+					} else {
+						if(base.a != 0) break;
+						base.set_sign(false);
+					}
+				} else if(ch == '-') {
+					if(expf) {
+						if(exp.a != 0) break; 
+						exp.set_sign();
+					} else {
+						if(base.a != 0) break;
+						base.set_sign();
+					}
+				} else if(ch >= '0' && ch <= '9') {
+					if(expf) {
+						exp.add(ch);
 					} else { 
-						base.add(ch - '0');
+						base.add(ch);
 					}
 				} else if(ch == '.') {
 					if(expf) {
 						if(exp.p) break;
 						exp.point();
-						if(exp.ovf) ovf_ = true;
 					} else {
 						if(base.p) break;
 						base.point();
-						if(base.ovf) ovf_ = true;
 					}
 				} else if(ch == 'e' || ch == 'E') {
 					if(expf) break;
@@ -368,6 +395,10 @@ namespace utils {
 				} else {
 					break;
 				}
+			}
+
+			if(base.ovf || exp.ovf) {
+				ovf_ = true;
 			}
 
 			if(expf) {
@@ -387,16 +418,28 @@ namespace utils {
 			fmm cm = fmm::none;
 
 			char ch;
+			bool esc = false;
 			while((ch = *form_++) != 0) {
 				switch(cm) {
 				case fmm::none:
-					if(ch == '[') {
+					if(esc) {
+						esc = false;
+						if(ch != inp_()) {
+							error_ = error::partition;
+							return;
+						}
+						break;
+					}
+					if(ch == '\\') {
+						esc = true;
+					} else if(ch == '[') {
 						auto a = inp_();
 						const char* p = form_;
 						bool ok = false;
 						while((ch = *p++) != 0 && ch != ']') {
 							if(ch == a) ok = true;
 						}
+						if(ch == 0) --p;
 						form_ = p;
 						if(!ok) {
 							error_ = error::cha_sets;
@@ -576,6 +619,17 @@ namespace utils {
 		basic_input(const std::string& form, const::std::string& inp) noexcept :
 			basic_input(form.c_str(), (inp.empty() ? nullptr : inp.c_str())) { }
 
+#if (__cplusplus >= 201703L)
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  コンストラクター std::string_view
+			@param[in]	form	フォーマット式
+			@param[in]	inp		変換文字列（nullptrの場合、sci_getch で取得）
+		*/
+		//-----------------------------------------------------------------//
+		basic_input(const std::string_view& form, const::std::string_view& inp) noexcept :
+			basic_input(form.data(), (inp.empty() ? nullptr : inp.data())) { }
+#endif
 
 		//-----------------------------------------------------------------//
 		/*!
@@ -637,12 +691,12 @@ namespace utils {
 					if(error_ == error::none) {
 						++num_;
 						val = tmp;
-						if(ovf_) {
-							error_ = error::overflow;
-							ovf_ = false;
-						}
 					}
 				}
+			}
+			if(ovf_) {
+				error_ = error::overflow;
+				ovf_ = false;
 			}
 			return *this;
 		}
