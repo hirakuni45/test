@@ -14,7 +14,7 @@ BUILD		=	release
 
 VPATH		=
 
-CSOURCES	=
+CSOURCES	=	read.c
 
 PSOURCES	=	main.cpp
 

@@ -67,6 +67,17 @@ int main(int argc, char* argv[])
 	return 0;
 #endif
 
+	{  // %n の 数値をデコードするテ検査
+		std::cout << boost::format("Test for '%%8d, %%12d'\n");
+		int a = 12345;
+		utils::format("%%8d   (12345): %8d\n") % a;
+		utils::format("%%08d  (12345): %08d\n") % a;
+		utils::format("%%12d  (12345): %12d\n") % a;
+		utils::format("%%012d (12345): %012d\n") % a;
+		utils::format("\n");
+	}
+
+
 	{  // %nd
 		int v = 1234;
 		utils::format("--------(8)\n");
@@ -123,9 +134,10 @@ int main(int argc, char* argv[])
 	}
 
 	{
+		format("\nTest for char[]\n");
 		char tmp[100];
 		strcpy(tmp, "Qwert");
-		format("'%s'\n") % tmp;
+		format("Qwert: '%s'\n\n") % tmp;
 	}
 
 	{
@@ -142,14 +154,13 @@ int main(int argc, char* argv[])
 	}
 
 	{  // sformat
-		format("sformat pass 1: in\n");
+		format("\nsformat pass 1: in\n");
 		int a = 9817;
-		sformat("%d\n") % a;
+		sformat("9817: %d\n") % a;
 
 		char tmp[4];
 		sformat("%d", tmp, sizeof(tmp)) % a;
-		format("'%s'\n") % tmp;
-		format("sformat pass 1: out\n");
+		format("'%s'\n\n") % tmp;
 	}
 
 	{
@@ -177,8 +188,14 @@ int main(int argc, char* argv[])
 		int val = 1921;
 		format("%s, %d\n") % val % str;
 	}
-	format("\n");
 
+	{  // pointer
+		format("\nPointer test:\n");
+		const char* s = "ABCDEFG";
+		format("    Pointer(const char*): %p (%s)\n") % s % s;
+	}
+
+	format("\n");
 	{  // 0.01 * 10000
 		float a = 0.0f;
 		for(int i = 0; i < 10000; ++i) {

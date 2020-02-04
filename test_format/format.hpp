@@ -24,7 +24,8 @@
 			! 2019/12/03 20:00- %nd の場合に、表示が重複する不具合修正。@n
 			+ 2019/12/03 21:54- インクルードファイルの修追加。@n
 			+ 2019/12/09 03:21- memory_chaout で出力先が設定されていない場合の安全性確保。@n
-			! 2019/12/14 11:44- 符号の表示不具合修正。
+			! 2019/12/14 11:44- 符号の表示不具合修正。@n
+			+ 2020/01/02 11:05- ポインター表示機能「%p」追加
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2013, 2019 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -381,6 +382,7 @@ namespace utils {
 			U_DECIMAL,		///< １０進（符号無し）
 			HEX_CAPS,		///< １６進（大文字）
 			HEX,			///< １６進（小文字）
+			POINTER,		///< ポインター（１６進）
 			FIXED_REAL,		///< 固定小数点
 			REAL,			///< 浮動小数点
 			EXPONENT_CAPS,	///< 浮動小数点 exp 形式(E)
@@ -424,9 +426,9 @@ namespace utils {
 		void next_() {
 			enum class apmd : uint8_t {
 				none,
-				num,    // 数字
+				num,	// 数字
 				point,	// 小数点
-				bitlen,	// 固定小数点、ビット長さ
+				bitlen	// 固定小数点、ビット長さ
 			};
 
 			if(form_ == nullptr) {
@@ -501,6 +503,9 @@ namespace utils {
 						return;
 					} else if(ch == 'G') {
 						mode_ = mode::REAL_AUTO_CAPS;
+						return;
+					} else if(ch == 'p' || ch == 'P') {
+						mode_ = mode::POINTER;
 						return;
 					} else if(ch == '%') {
 						chaout_(ch);
@@ -791,6 +796,20 @@ namespace utils {
 			}
 		}
 
+
+		void pointer_(const void* val)
+		{
+			auto v = reinterpret_cast<uint64_t>(val);
+			if(sizeof(val) > 4) {
+				zerosupp_ = true;
+				num_ = 8;
+				out_hex_(v >> 32, 'A');
+			}
+			zerosupp_ = true;
+			num_ = 8;
+			out_hex_(v, 'A');
+		}
+
 	public:
 		//-----------------------------------------------------------------//
 		/*!
@@ -884,7 +903,13 @@ namespace utils {
 				return *this;
 			}
 
-			str_sub_(val);
+			if(mode_ == mode::STR) {
+				str_sub_(val);
+			} else if(mode_ == mode::POINTER) {
+				pointer_(static_cast<const void*>(val));
+			} else {
+				error_ = error::unknown;
+			}
 
 			reset_();
 			next_();
@@ -894,7 +919,7 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  オペレーター「%」(const char*)
+			@brief  オペレーター「%」(char*)
 			@param[in]	val	値
 			@return	自分の参照
 		*/
@@ -905,7 +930,13 @@ namespace utils {
 				return *this;
 			}
 
-			str_sub_(val);
+			if(mode_ == mode::STR) {
+				str_sub_(val);
+			} else if(mode_ == mode::POINTER) {
+				pointer_(static_cast<const void*>(val));
+			} else {
+				error_ = error::unknown;
+			}
 
 			reset_();
 			next_();
@@ -927,7 +958,13 @@ namespace utils {
 				return *this;
 			}
 
-			if(std::is_integral<T>::value) {
+			if(std::is_pointer<T>::value) {
+				if(mode_ == mode::POINTER) {
+
+				} else {
+					error_ = error::different;
+				}
+			} else if(std::is_integral<T>::value) {
 				if(mode_ == mode::CHA) {
 					auto chn = static_cast<int32_t>(val);
 					if(chn > -128 && chn < 128) {
